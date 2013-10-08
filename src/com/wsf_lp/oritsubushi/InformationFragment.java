@@ -20,23 +20,27 @@ import android.widget.Button;
 
 public class InformationFragment extends Fragment {
 
-	/*private static class MyWebViewClient extends WebViewClient {
-		private WeakReference<Fragment> fragment;
+	private static class MyWebViewClient extends WebViewClient {
+		private final WeakReference<Fragment> fragment;
+		private final String myUrl;
 
-		private MyWebViewClient(Fragment fragment) {
+		private MyWebViewClient(Fragment fragment, String myUrl) {
 			this.fragment = new WeakReference<Fragment>(fragment);
+			this.myUrl = myUrl;
 		}
 
 		@Override
 		public boolean shouldOverrideUrlLoading(WebView view, String url) {
 			if(myUrl.equals(url)) {
 				return false;
-			} else {
-				startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
+			} else if (fragment.get() != null){
+				fragment.get().startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
 				return true;
+			} else {
+				return false;
 			}
 		}
-	}*/
+	}
 
 	private static class HttpResponseHandler extends AsyncHttpResponseHandler {
 		private WeakReference<InformationFragment> fragment;
@@ -121,7 +125,7 @@ public class InformationFragment extends Fragment {
 			}
 		});
 		webView.getSettings().setJavaScriptEnabled(true);
-		//webView.setWebViewClient(new MyWebViewClient(this));
+		webView.setWebViewClient(new MyWebViewClient(this, myUrl));
 
 		return view;
 	}
