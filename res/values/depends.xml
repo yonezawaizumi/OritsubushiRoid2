@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <integer name="settings_map_update_wait_msec">500</integer>
+    <integer name="settings_mapview_update_disabled_delay_sec">7</integer>
+    <integer name="settings_database_initializing_status_update_msec">2000</integer>
+    <string name="information_url">http://oritsubushi.net/oritsubushi/timeline.php</string>
+    <integer name="menu_dialog_width_ratio">80</integer>
+    <string name="sync_url">http://oritsubushi.net/oritsubushi/sync.php</string>
+    <string name="users_url">http://oritsubushi.net/users.php</string>
+    <string name="logout_url">http://oritsubushi.net/users.php?mode=logout</string>
+    <string name="host_url">http://oritsubushi.net/</string>
+    <string name="twitter_oauth_url">https://twitter.com/oauth/authenticate</string>
+    <string name="twitter_oauth_url_1_1">https://twitter.com/oauth/authorize</string>
+    <string name="host_domain">oritsubushi.net</string>
+    <string name="update_date_header">X-Oritsubushi-Updated</string>
+</resources>

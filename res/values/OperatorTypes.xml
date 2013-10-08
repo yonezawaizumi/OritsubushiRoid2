@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="operator_types">
+        <item />
+        <item >JR旅客会社</item>
+        <item >大手私鉄</item>
+        <item >準大手私鉄</item>
+        <item >公営交通</item>
+        <item >中小私鉄</item>
+        <item >モノレール</item>
+        <item >新交通システム</item>
+        <item >ケーブルカー</item>
+        <item >トロリーバス</item>
+        <item >浮上式鉄道</item>
+    </string-array>
+    
+</resources>

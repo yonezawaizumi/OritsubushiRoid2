@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="group_statistics_formatter">%1$d駅中 %2$d駅　%3$d.%4$d%%　残り%5$d駅</string>
+    <string name="group_completion_date_statistics_formatter">%1$d駅中 %2$d駅　%3$d.%4$d%%</string>
+    <string name="group_completion_date_ambigous_label">不明</string>
+    <string name="group_completion_date_incomplete">未乗下車</string>
+    <string name="group_completion_date_ambigous">年月日不明</string>
+    <string name="group_completion_date_year">%1$d年</string>
+    <string name="group_completion_date_year_ambigous">%1$d年 月日不明</string>
+    <string name="group_completion_date_month">%1$d年%2$d月</string>
+    <string name="group_completion_date_month_ambigous">%1$d年%2$d月 日付不明</string>
+    <string name="group_completion_date_day">%1$d年%2$d月%3$d日</string>
+    <string name="group_completion_date_incomplete_cell">未乗下車</string>
+    <string name="group_completion_date_ambigous_cell">年月日不明</string>
+    <string name="group_completion_date_year_cell">%1$d年</string>
+    <string name="group_completion_date_year_ambigous_cell">月日不明</string>
+    <string name="group_completion_date_month_cell">%2$d月</string>
+    <string name="group_completion_date_month_ambigous_cell">日付不明</string>
+    <string name="group_completion_date_day_cell">%3$d日</string>
+</resources>

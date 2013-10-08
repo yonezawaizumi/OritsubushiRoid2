@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="complete_date_incomplete">未乗下車</string>
+    <string name="complete_date_unknown">乗下車済（日付不明）</string>
+    <string name="complete_date_year">%1$d年頃</string>
+    <string name="complete_date_month">%1$d年%2$d月頃</string>
+    <string name="complete_date_day">%1$d年%2$d月%3$d日</string>
+    <string name="complete_date_incomplete_short">未</string>
+    <string name="complete_date_unknown_short">日付不明</string>
+    <string name="complete_date_year_short">%1$d年頃</string>
+    <string name="complete_date_month_short">%1$d/%2$d頃</string>
+    <string name="complete_date_day_short">%1$d/%2$d/%3$d</string>
+    <string name="station_distance_in_sight">%1$s / 中心のすぐ近く</string>
+    <string name="station_distance_meter">%1$s / 中心から約%2$dm</string>
+    <string name="station_distance_10km">%1$s / 中心から約%2$.1fkm</string>
+    <string name="station_distance_long">%1$s / 中心から約%2$dkm</string>
+    <string name="station_group_description_format">%1$s : %2$s</string>
+    <string name="station_group_yomi_description_format">%1$s : %2$s / %3$s</string>
+    <string name="station_group_comp_date_description_format">%1$s / %2$s</string>
+    </resources>

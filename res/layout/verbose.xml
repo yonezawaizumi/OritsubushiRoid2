@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView  xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:wsf="http://schemas.android.com/apk/res/com.wsf_lp.oritsubushi"
+  android:id="@+id/ScrollView"
+  android:layout_height="fill_parent"
+  android:layout_width="fill_parent" >
+
+  <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:gravity="center_horizontal"
+      android:orientation="vertical" >
+
+      <com.wsf_lp.oritsubushi.customs.FontFitTextView
+          android:id="@+id/verbose_title"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_marginBottom="8dp"
+          android:layout_marginLeft="8dp"
+          android:layout_marginRight="8dp"
+          android:layout_marginTop="16dp"
+          android:gravity="center"
+          android:maxLines="1"
+          android:text="リゾートゲートウェイ・ステーションは長すぎだろjk駅"
+          android:textAppearance="?android:attr/textAppearanceLarge"
+          android:textSize="28sp"
+          wsf:minTextSize="12sp" />
+
+      <TextView
+          android:id="@+id/verbose_yomi"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:maxLines="1"
+          android:text="りぞーとげーとうぇい・すてーしょんはながすぎだろ"
+          android:textSize="12sp" />
+
+      <TextView
+          android:id="@+id/verbose_lines"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_margin="8dp"
+          android:text="ネズミーライン鉄道 ネズミリゾートーライン線"
+          android:textSize="14sp" />
+
+      <TextView
+          android:id="@+id/verbose_address"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_marginBottom="16dp"
+          android:layout_marginLeft="8dp"
+          android:layout_marginRight="8dp"
+          android:layout_marginTop="0dp"
+          android:text="千葉県安浦市踊浜1-4"
+          android:textSize="12sp" />
+
+      <RelativeLayout
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:background="#444" >
+
+          <Button
+              android:id="@+id/verbose_button_edit_date"
+              style="@style/button"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:layout_alignParentRight="true"
+              android:layout_centerVertical="true"
+              android:text="@string/verbose_button_edit_date" />
+
+          <Button
+              android:id="@+id/verbose_button_comp_today"
+              style="@style/button"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:layout_alignParentBottom="false"
+              android:layout_centerVertical="true"
+              android:layout_toLeftOf="@+id/verbose_button_edit_date"
+              android:enabled="false"
+              android:text="@string/verbose_button_comp_today" />
+
+          <TextView
+              android:id="@+id/verbose_header_date"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:layout_alignParentLeft="true"
+              android:layout_centerVertical="true"
+              android:layout_toLeftOf="@+id/verbose_button_comp_today"
+              android:padding="4sp"
+              android:text="@string/verbose_header_date"
+              android:textAppearance="?android:attr/textAppearanceSmall"
+              android:textSize="16sp" />
+
+      </RelativeLayout>
+
+      <TextView
+          android:id="@+id/verbose_comp_date"
+          android:layout_width="fill_parent"
+          android:layout_height="wrap_content"
+          android:layout_margin="10dp"
+          android:text="Large Text"
+          android:textAppearance="?android:attr/textAppearanceLarge"
+          android:textSize="20sp" />
+
+      <RelativeLayout
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:background="#444" >
+
+          <Button
+              android:id="@+id/verbose_button_edit_memo"
+              style="@style/button"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:layout_alignParentRight="true"
+              android:layout_centerVertical="true"
+              android:text="@string/verbose_button_edit_memo" />
+
+          <TextView
+              android:id="@+id/verbose_header_memo"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:layout_alignParentLeft="true"
+              android:layout_centerVertical="true"
+              android:layout_toLeftOf="@id/verbose_button_edit_memo"
+              android:padding="4sp"
+              android:text="@string/verbose_header_memo"
+              android:textAppearance="?android:attr/textAppearanceSmall"
+              android:textSize="16sp" />
+
+      </RelativeLayout>
+
+      <RelativeLayout
+          android:layout_width="fill_parent"
+          android:layout_height="wrap_content"
+          android:layout_margin="12dp" >
+
+          <TextView
+              android:id="@+id/verbose_memo"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:layout_alignParentLeft="true"
+              android:layout_centerVertical="true"
+              android:text="Large Text"
+              android:textAppearance="?android:attr/textAppearanceSmall"
+              android:textSize="16sp" />
+
+      </RelativeLayout>
+
+      <RelativeLayout
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:background="#444" >
+
+          <Button
+              android:id="@+id/Button01"
+              style="@style/button"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:layout_alignParentRight="true"
+              android:layout_centerVertical="true"
+              android:text="@string/verbose_button_edit_memo"
+              android:visibility="invisible" />
+
+          <TextView
+              android:id="@+id/TextView01"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:layout_alignParentLeft="true"
+              android:layout_centerVertical="true"
+              android:layout_toLeftOf="@+id/Button01"
+              android:padding="4sp"
+              android:text="@string/verbose_header_misc"
+              android:textAppearance="?android:attr/textAppearanceSmall"
+              android:textSize="16sp" />
+      </RelativeLayout>
+
+      <LinearLayout
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_margin="10dp"
+          android:gravity="center_horizontal"
+          android:orientation="vertical" >
+
+          <Button
+              android:id="@+id/verbose_button_wikipedia"
+              style="@style/button"
+              android:layout_width="fill_parent"
+              android:layout_height="wrap_content"
+              android:layout_margin="6dp"
+              android:layout_weight="1"
+              android:text="@string/verbose_button_wikipedia" />
+
+          <Button
+              android:id="@+id/verbose_button_move_to"
+              style="@style/button"
+              android:layout_width="fill_parent"
+              android:layout_height="wrap_content"
+              android:layout_margin="6dp"
+              android:layout_weight="1"
+              android:text="@string/verbose_button_move_to" />
+      </LinearLayout>
+  </LinearLayout>
+
+</ScrollView>

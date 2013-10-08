@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:wsf="http://schemas.android.com/apk/res/com.wsf_lp.oritsubushi"
+    android:id="@+id/FrameLayout1"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical" >
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" >
+
+            <com.wsf_lp.oritsubushi.customs.FontFitTextView
+                android:id="@+id/title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:layout_centerVertical="true"
+                android:layout_margin="8dp"
+                android:lines="1"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:textSize="28sp"
+                wsf:minTextSize="12sp" />
+
+            <Button
+                android:id="@+id/list_button_map_filter"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_centerVertical="true"
+                android:text="@string/list_button_map_filter"
+                android:textSize="12sp" />
+        </RelativeLayout>
+
+        <com.wsf_lp.oritsubushi.customs.FontFitTextView
+            android:id="@+id/description"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical|center_horizontal"
+            android:layout_margin="4dp"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:textSize="14sp"
+            wsf:minTextSize="12sp" />
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="fill_parent" >
+
+            <ListView
+                android:id="@+id/list"
+                android:layout_width="match_parent"
+                android:layout_height="fill_parent" >
+            </ListView>
+
+            <RelativeLayout
+                android:id="@+id/wrapper"
+                android:layout_width="match_parent"
+                android:layout_height="fill_parent" >
+
+                <View
+                    android:id="@+id/view1"
+                    android:layout_width="1dp"
+                    android:layout_height="1dp"
+                    android:layout_centerHorizontal="true"
+                    android:layout_centerVertical="true"
+                    android:minHeight="1dp"
+                    android:minWidth="1dp" />
+
+                <ProgressBar
+                    android:id="@+id/progressBar1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_above="@+id/view1"
+                    android:layout_centerHorizontal="true"
+                    android:layout_marginBottom="2dp" />
+
+            </RelativeLayout>
+        </FrameLayout>
+    </LinearLayout>
+
+</FrameLayout>

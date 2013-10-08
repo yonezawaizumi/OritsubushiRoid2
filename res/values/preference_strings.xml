@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="preference_title_map_settings">地図表示設定</string><string name="preference_title_number_of_icons">表示駅数</string><string-array name="preference_number_of_icons">
+        <item>50駅以内</item>
+        <item>100駅以内</item>
+        <item>150駅以内</item>
+        <item>200駅以内</item>
+        <item>300駅以内</item>
+        <item>500駅以内</item>
+        <item>無制限(危険!)</item>
+    </string-array>
+    <string-array name="preference_number_of_icons_values">
+        <item>50</item>
+        <item>100</item>
+        <item>150</item>
+        <item>200</item>
+        <item>300</item>
+        <item>500</item>
+        <item>2147483647</item>
+    </string-array>
+    
+    
+    
+    
+    
+    
+</resources>
