@@ -4,20 +4,22 @@ import com.wsf_lp.mapapp.data.Station;
 
 public class SyncFragment extends DBAccessFragmentBase {
 
-	public SyncFragment() {
-		// TODO 自動生成されたコンストラクター・スタブ
+	@Override
+	protected void onQueryFinished(String methodName, Object result, long sequence) {
+		// TODO 自動生成されたメソッド・スタブ
+		
 	}
 
 	@Override
-	public void onDatabaseResult(long sequence, String methodName, Object result) {
+	protected void onDatabaseUpdated() {
 		// TODO 自動生成されたメソッド・スタブ
-
+		
 	}
 
 	@Override
-	public void onDatabaseUpdated(Station station) {
+	protected void onStationUpdated(Station station) {
 		// TODO 自動生成されたメソッド・スタブ
-
+		
 	}
 
 }

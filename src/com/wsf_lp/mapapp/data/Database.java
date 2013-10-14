@@ -542,7 +542,8 @@ public class Database {
 				} else {
 					Log.d("database", "completion status not changed");
 				}
-				return new OritsubushiNotificationIntent().setStation(station);
+				//TODO: sequence
+				return new OritsubushiNotificationIntent().setStation(station, /*sequence*/0);
 			} else {
 				Log.d("database", "completion update failed");
 				return null;

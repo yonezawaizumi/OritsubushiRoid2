@@ -423,7 +423,7 @@ public class OritsubushiRoidActivity extends MapActivity
 	}
 
 	@Override
-	public void onDatabaseUpdated(final Station station) {
+	public void onDatabaseUpdated(final Station station, int sequence) {
 		if(isDatabaseActive) {
 			if(station != null) {
 				boolean remove;

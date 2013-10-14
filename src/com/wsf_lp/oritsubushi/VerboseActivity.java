@@ -302,7 +302,7 @@ public class VerboseActivity
 	}
 
 	@Override
-	public void onDatabaseUpdated(Station station) {
+	public void onDatabaseUpdated(Station station, int sequence) {
 		if(station == null) {
 			isAlive = false;
 			finish();

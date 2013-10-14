@@ -6,20 +6,23 @@ import android.content.Intent;
 import android.content.IntentFilter;
 
 public class OritsubushiNotificationIntent extends Intent {
-	private static final String NAME = OritsubushiNotificationIntent.class.getName();
+	private static final String NAME = "OritsubushiNotificationIntent";
 	public static final String ACTION_UPDATED =  NAME + ".Update";
 	public static final String ACTION_MAP_STATUS_CHANGED = NAME + ".MapStatusChange";
 	public static final String ACTION_MAP_MOVE_TO = NAME + ".MapMoveTo";
 	public static final String ACTION_SYNC_FINISH = NAME + ".SyncFinish";
 	private static final String TAG_STATION = "station";
 	private static final String TAG_SYNC = "sync";
+	private static final String TAG_SEQUENCE = "sequence";
 
-	public OritsubushiNotificationIntent setStation(Station station) {
+	public OritsubushiNotificationIntent setStation(Station station, int sequence) {
 		putExtra(TAG_STATION, station);
+		putExtra(TAG_SEQUENCE, sequence);
 		setAction(ACTION_UPDATED);
 		return this;
 	}
-	public OritsubushiNotificationIntent setNeedsReload() {
+	public OritsubushiNotificationIntent setNeedsReload(int sequence) {
+		putExtra(TAG_SEQUENCE, sequence);
 		setAction(ACTION_UPDATED);
 		return this;
 	}
@@ -88,6 +91,14 @@ public class OritsubushiNotificationIntent extends Intent {
 			return intent.getParcelableExtra(TAG_STATION);
 		} else {
 			return null;
+		}
+	}
+
+	static public int getSequence(Intent intent) {
+		if(intent.hasExtra(TAG_SEQUENCE)) {
+			return intent.getIntExtra(TAG_SEQUENCE, 0);
+		} else {
+			return 0;
 		}
 	}
 

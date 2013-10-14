@@ -6,15 +6,21 @@ import com.wsf_lp.mapapp.data.Station;
 public class MapFragment extends DBAccessFragmentBase {
 
 	@Override
-	public void onDatabaseResult(long sequence, String methodName, Object result) {
+	public void onStationUpdated(Station station) {
 		// TODO 自動生成されたメソッド・スタブ
 
 	}
 
 	@Override
-	public void onDatabaseUpdated(Station station) {
+	protected void onQueryFinished(String methodName, Object result, long sequence) {
 		// TODO 自動生成されたメソッド・スタブ
+		
+	}
 
+	@Override
+	protected void onDatabaseUpdated() {
+		// TODO 自動生成されたメソッド・スタブ
+		
 	}
 
 }

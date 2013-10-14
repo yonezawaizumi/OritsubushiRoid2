@@ -166,7 +166,8 @@ public class DatabaseService extends Service
 							return;
 						}
 						service.onProgress(-1);
-						service.sendBroadcast(new OritsubushiNotificationIntent().setNeedsReload());
+						//TODO: sequence
+						service.sendBroadcast(new OritsubushiNotificationIntent().setNeedsReload(/*sequecne*/0));
 					}
 				});
 			}
@@ -503,7 +504,8 @@ public class DatabaseService extends Service
 	private void finishSync(boolean updated) {
 		PreferenceManager.getDefaultSharedPreferences(this).edit().putLong(PreferenceKey.SYNC_RECENT_DATE, System.currentTimeMillis()).commit();
 		if(updated) {
-			sendBroadcast(new OritsubushiNotificationIntent().setNeedsReload());
+			//TODO: sequence
+			sendBroadcast(new OritsubushiNotificationIntent().setNeedsReload(/*sequence*/0));
 		}
 		finishSyncingNotification(R.string.sync_done);
 	}

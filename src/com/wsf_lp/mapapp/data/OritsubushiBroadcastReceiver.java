@@ -7,7 +7,7 @@ import android.content.IntentFilter;
 
 public class OritsubushiBroadcastReceiver extends BroadcastReceiver {
 	public interface UpdateListener {
-		public void onDatabaseUpdated(Station station);
+		public void onDatabaseUpdated(Station station, int sequence);
 	}
 	public interface MapListener {
 		public void onMapStatusChanged();
@@ -38,7 +38,7 @@ public class OritsubushiBroadcastReceiver extends BroadcastReceiver {
 				((MapListener)listener).onMapMoveTo(OritsubushiNotificationIntent.getStation(intent));
 			}
 		} else {
-			listener.onDatabaseUpdated(OritsubushiNotificationIntent.getStation(intent));
+			listener.onDatabaseUpdated(OritsubushiNotificationIntent.getStation(intent), OritsubushiNotificationIntent.getSequence(intent));
 		}
 	}
 

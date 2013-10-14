@@ -343,7 +343,7 @@ public abstract class GroupActivityBase extends Activity
 	}
 
 	@Override
-	public void onDatabaseUpdated(Station station) {
+	public void onDatabaseUpdated(Station station, int sequence) {
 		if(station == null) {
 			reset();
 		} else {
