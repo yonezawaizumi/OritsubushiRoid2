@@ -1,5 +1,7 @@
 package com.wsf_lp.oritsubushi;
 
+import java.util.List;
+
 import com.wsf_lp.mapapp.data.DatabaseResultReceiver;
 import com.wsf_lp.mapapp.data.DatabaseService;
 import com.wsf_lp.mapapp.data.DatabaseServiceConnector;
@@ -25,12 +27,18 @@ public abstract class DBAccessFragmentBase extends Fragment
 	private DatabaseService databaseService;
 	private OritsubushiBroadcastReceiver broadcastReceiver;
 
-	protected boolean isAlive() { return isAlive; }
+	public boolean isAlive() { return isAlive; }
 	protected DatabaseService getDatabaseService() { return databaseService; }
+	public boolean isDatabaseReady() { return databaseService != null; }
 
+	protected abstract void onDatabaseConnected(boolean forceReload, List<Station> updatedStations);
 	protected abstract void onQueryFinished(String methodName, Object result, long sequence);
 	protected abstract void onDatabaseUpdated();
 	protected abstract void onStationUpdated(Station station);
+	
+	protected long callDatabase(String methodName, Object... args) {
+		return isDatabaseReady() ? getDatabaseService().callDatabase(this, methodName, args) : Long.MAX_VALUE;
+	}
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -66,9 +74,10 @@ public abstract class DBAccessFragmentBase extends Fragment
 		if(isAlive()) {
 			this.databaseService = service;
 			//TODO: recentDBNotifySequence をDBに問い合わせて最新の更新情報を得る
+			onDatabaseConnected(false, null);
 		}
 	}
-
+	
 	@Override
 	public void onDatabaseDisconnected() {
 		this.databaseService = null;

@@ -349,5 +349,9 @@ public class Station implements Parcelable, CellItem {
 	public String getDescription(Resources resources) {
 		return getDistanceDescription(resources);
 	}
+	
+	//for v2
+	public void setExpired() { code = 0; }
+	public boolean isExpired() { return code == 0; }
 
 }

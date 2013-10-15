@@ -58,6 +58,7 @@ public class Database {
 		public static final String GET_STATIONS = "getStations";
 		public static final String SET_VISIBILITY_TYPE = "setVisibilityType";
 		public static final String LOAD_LINES = "getStationLines";
+		public static final String RELOAD_STATION = "reloadStation";
 		public static final String GET_TOTAL = "getTotalGroup";
 		public static final String GET_OPERATOR_TYPES = "getOperatorTypeGroups";
 		public static final String RELOAD_OPERATOR_TYPE = "reloadOperatorTypeGroup";
@@ -500,6 +501,21 @@ public class Database {
 		}
 		cursor.close();
 		return newStations;
+	}
+	
+	//Android サービス接続ぶつ切れ対策
+	public Station reloadStation(Station station) {
+		final String[] param = new String[] { Integer.toString(station.getCode()) };
+		Cursor cursor = sqlite.rawQuery("SELECT stations.*, completions.comp_date, completions.memo "
+				+ "FROM stations completions "
+				+ "WHERE stations.enabled = 1 AND completions.s_id = stations.s_id ", param);
+		if(cursor.moveToNext()) {
+			station.setFromCursor(cursor, operators);
+		} else {
+			station.setExpired();
+		}
+		cursor.close();
+		return station.isExpired() ? station : getStationLines(station);
 	}
 
 	public Station getStationLines(Station station) {

@@ -22,12 +22,12 @@ import com.wsf_lp.mapapp.data.Station;
 
 public abstract class GroupFragmentBase extends Fragment implements FragmentManager.OnBackStackChangedListener {
 	public static final String STATE_NUM_PANELS = "numPanels";
-	public static final String STATE_VERBOSE_STATION = "VerboseStation";
+	public static final String STATE_STATION = "station";
 	public static final String STATE_HEADER_GROUP = "group";
 	public static final String STACK_FIRST = "first";
 
 	private int numPanels;
-	private Station verboseStation;
+	private Station station;
 
 	public abstract static class PanelFragment extends DBAccessFragmentBase
 			implements View.OnClickListener, ListView.OnItemClickListener {
@@ -76,7 +76,7 @@ public abstract class GroupFragmentBase extends Fragment implements FragmentMana
 		public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 			GroupFragmentBase groupFragment = (GroupFragmentBase)getParentFragment();
 			Group targetGroup = groups.get(position);
-			Station station = isStation(targetGroup);
+			Station station = getStatinFronGroup(targetGroup);
 			if(station != null) {
 				groupFragment.showVerbose(station);
 			} else {
@@ -96,8 +96,10 @@ public abstract class GroupFragmentBase extends Fragment implements FragmentMana
 
 		public abstract int getMapFilterButtonVisibility();
 		public abstract void onMapFilterButtonClicked();
-		public abstract Station isStation(Group group);
+		public abstract Station getStatinFronGroup(Group group);
 		public abstract void reload();
+		protected abstract void onQueryFinished(String methodName, Object result);
+		protected abstract void onQueryForHeaderFinished(String methodName, Object result);
 
 		public void updateHeaderText() {
 			Resources resources = getResources();
@@ -105,17 +107,15 @@ public abstract class GroupFragmentBase extends Fragment implements FragmentMana
 			description.setText(headerGroup.getDescription(resources));
 		}
 
-		protected void callDatabase(String methodName, Object... args) {
-			recentRequestSequence = getDatabaseService().callDatabase(this, methodName, args);
+		protected void callDatabaseForGroups(String methodName, Object... args) {
+			recentRequestSequence = callDatabase(methodName, args);
 			recentRequestLimit = System.currentTimeMillis() + RETRY_MSEC;
 		}
-		protected void callDatabaseForHeader(int panelIndex, String methodName, Object... args) {
-			recentHeaderRequestSequence = getDatabaseService().callDatabase(this, methodName, args);
+		protected void callDatabaseForHeader(String methodName, Object... args) {
+			recentHeaderRequestSequence = callDatabase(methodName, args);
 			recentHeaderRequestLimit = System.currentTimeMillis() + RETRY_MSEC;
 		}
 		
-		protected abstract void onQueryFinished(String methodName, Object result);
-		protected abstract void onQueryForHeaderFinished(String methodName, Object result);
 
 		@Override
 		protected void onQueryFinished(String methodName, Object result, long sequence) {
@@ -181,11 +181,39 @@ public abstract class GroupFragmentBase extends Fragment implements FragmentMana
 			.commit();
 		return fragment;
 	}
+	
+	private void addStationFragment() {
+		FragmentManager manager = getChildFragmentManager();
+		Class<? extends PanelFragment>[] fragmentClasses = getFragmentClasses();
+		Fragment previousFragment = manager.findFragmentByTag(fragmentClasses[numPanels - 1].getCanonicalName());
+		StationFragment fragment = new StationFragment();
+		Bundle bundle = new Bundle();
+		bundle.putParcelable(StationFragment.STATE_STATION, station);
+		fragment.setArguments(bundle);
+		manager.beginTransaction()
+			.setCustomAnimations(R.anim.slide_in_right, R.anim.none, R.anim.none, R.anim.slide_out_right)
+			.add(fragment, StationFragment.class.getCanonicalName())
+			.hide(previousFragment)
+			.addToBackStack(null)
+			.commit();
+	}
+	
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		getChildFragmentManager().addOnBackStackChangedListener(this);
+	}
 
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
 		Class<? extends PanelFragment>[] fragmentClasses = getFragmentClasses();
+		//for debug
+		if(fragmentClasses == null) {
+			numPanels = 0;
+			return;
+		}
+		
 		numPanels = savedInstanceState != null ? savedInstanceState.getInt(STATE_NUM_PANELS) : 0;
 		if(numPanels <= 0 || fragmentClasses.length <= numPanels) {
 			numPanels = 1;
@@ -199,9 +227,9 @@ public abstract class GroupFragmentBase extends Fragment implements FragmentMana
 		while(++panelIndex < numPanels) {
 			fragment = addFragment(panelIndex, fragment, manager, false, null);
 		}
-		verboseStation = savedInstanceState != null ? (Station)savedInstanceState.getParcelable(STATE_VERBOSE_STATION) : null;
-		if(verboseStation != null) {
-			//TODO: StationFragmentを追加する
+		station = savedInstanceState != null ? (Station)savedInstanceState.getParcelable(STATE_STATION) : null;
+		if(station != null) {
+			addStationFragment();
 		}
 	}
 
@@ -209,23 +237,21 @@ public abstract class GroupFragmentBase extends Fragment implements FragmentMana
 	public void onSaveInstanceState(Bundle outState) {
 		super.onSaveInstanceState(outState);
 		outState.putInt(STATE_NUM_PANELS, numPanels);
-		if(verboseStation != null) {
-			outState.putParcelable(STATE_VERBOSE_STATION, verboseStation);
-		}
+		outState.putParcelable(STATE_STATION, station);
 	}
 	
 	@Override
 	public void onBackStackChanged() {
 		FragmentManager manager = getChildFragmentManager();
 		((ActionBarActivity)getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(manager.getBackStackEntryCount() > 0);
-		//TODO: StationFragmentの有無の判断
-		/*if(verboseStation != null && manager.findFragmentByTag(StationFragment.class.getCanonicalName())) {
-			verboseStation = null;
-		}*/
+		if(station != null && manager.findFragmentByTag(StationFragment.class.getCanonicalName()) == null) {
+			station = null;
+		}
 	}
 	
 	public void showVerbose(Station station) {
-		//TODO: verboseStation = station;
+		this.station = station;
+		addStationFragment();
 	}
 	
 	public void showChild(Group group) {
@@ -244,5 +270,4 @@ public abstract class GroupFragmentBase extends Fragment implements FragmentMana
 			}
 		}
 	}
-
 }

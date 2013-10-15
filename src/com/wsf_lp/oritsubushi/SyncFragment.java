@@ -1,5 +1,7 @@
 package com.wsf_lp.oritsubushi;
 
+import java.util.List;
+
 import com.wsf_lp.mapapp.data.Station;
 
 public class SyncFragment extends DBAccessFragmentBase {
@@ -18,6 +20,13 @@ public class SyncFragment extends DBAccessFragmentBase {
 
 	@Override
 	protected void onStationUpdated(Station station) {
+		// TODO 自動生成されたメソッド・スタブ
+		
+	}
+
+	@Override
+	protected void onDatabaseConnected(boolean forceReload,
+			List<Station> updatedStations) {
 		// TODO 自動生成されたメソッド・スタブ
 		
 	}
