@@ -70,7 +70,7 @@ public abstract class DBAccessFragmentBase extends Fragment
 	}
 
 	@Override
-	public void onDatabaseConnected(DatabaseService service) {
+	public final void onDatabaseConnected(DatabaseService service) {
 		if(isAlive()) {
 			this.databaseService = service;
 			//TODO: recentDBNotifySequence をDBに問い合わせて最新の更新情報を得る
@@ -84,14 +84,14 @@ public abstract class DBAccessFragmentBase extends Fragment
 	}
 	
 	@Override
-	public void onDatabaseResult(long sequence, String methodName, Object result) {
+	public final void onDatabaseResult(long sequence, String methodName, Object result) {
 		if(isAlive()) {
 			onQueryFinished(methodName, result, sequence);
 		}
 	}
 	
 	@Override
-	public void onDatabaseUpdated(Station station, int sequence) {
+	public final void onDatabaseUpdated(Station station, int sequence) {
 		recentDBNotifySequence = sequence;
 		if(station == null) {
 			onDatabaseUpdated();

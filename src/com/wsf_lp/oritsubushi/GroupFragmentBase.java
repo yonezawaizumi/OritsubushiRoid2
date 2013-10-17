@@ -6,347 +6,303 @@ import java.util.List;
 import android.app.Activity;
 import android.content.res.Resources;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v7.app.ActionBarActivity;
+import android.os.Parcelable;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.ViewFlipper;
 
 import com.wsf_lp.mapapp.data.Group;
 import com.wsf_lp.mapapp.data.Station;
 
-public abstract class GroupFragmentBase extends DBAccessFragmentBase implements FragmentManager.OnBackStackChangedListener, OritsubushiFragmentTraits {
-	public static final String STATE_NUM_PANELS = "numPanels";
-	public static final String STATE_PANEL_INDEX = "panelIndex";
-	public static final String STATE_STATION = "station";
-	public static final String STATE_HEADER_GROUP = "group";
-	public static final String STACK_FIRST = "first";
+public abstract class GroupFragmentBase extends DBAccessFragmentBase implements OnBackPressedListener {
+	protected static final String STATE_TAG = "group";
 
-	private int numPanels;
-	private Station station;
+	protected static final long RETRY_MSEC = 5000;
 
-	public abstract static class PanelFragment extends DBAccessFragmentBase
-			implements View.OnClickListener, ListView.OnItemClickListener {
-		protected int panelIndex;
-		protected TextView title;
-		protected TextView description;
-		protected Button mapFilterButton;
-		protected ListView listView;
-		protected View wrapper;
-		protected CellAdapter cellAdapter;
-		protected Group headerGroup;
-		protected ArrayList<Group> groups = new ArrayList<Group>();
-		protected long recentRequestSequence = Long.MIN_VALUE;
-		protected long recentRequestLimit = Long.MAX_VALUE;
-		protected long recentHeaderRequestSequence = Long.MIN_VALUE;
-		protected long recentHeaderRequestLimit = Long.MAX_VALUE;
+	private ViewFlipper flipper;
+	private Animation inAnimation;
+	private Animation outAnimation;
+	private Animation nonAnimation;
 
-		@Override
-		public void onCreate(Bundle savedInstanceState) {
-			super.onCreate(savedInstanceState);
-			Bundle arguments = getArguments();
-			panelIndex = arguments.getInt(STATE_PANEL_INDEX);
-			headerGroup = arguments.getParcelable(STATE_HEADER_GROUP);
-		}
-
-		@Override
-		public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-			Activity activity = getActivity();
-			TypedValue value = new TypedValue();
-			activity.getTheme().resolveAttribute(android.R.attr.colorBackground, value, true);
-			View panelView = inflater.inflate(R.layout.list, container, false);
-			panelView.setBackgroundResource(value.resourceId);
-			title = (TextView)panelView.findViewById(R.id.title);
-			description = (TextView)panelView.findViewById(R.id.description);
-			mapFilterButton = (Button)panelView.findViewById(R.id.list_button_map_filter);
-			listView = (ListView)panelView.findViewById(R.id.list);
-			wrapper = panelView.findViewById(R.id.wrapper);
-			wrapper.setBackgroundResource(value.resourceId);
-			wrapper.setVisibility(View.VISIBLE);
-			mapFilterButton.setVisibility(getMapFilterButtonVisibility());
-			mapFilterButton.setOnClickListener(this);
-			cellAdapter = new CellAdapter(groups, activity);
-			listView.setAdapter(cellAdapter);
-			listView.setOnItemClickListener(this);
-
-			if(groups.isEmpty() && isDatabaseReady()) {
-				loadGroups();
-			}
-
-			return panelView;
-		}
-
-		@Override
-		public void onClick(View v) {
-			onMapFilterButtonClicked();
-		}
-
-		@Override
-		public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-			GroupFragmentBase groupFragment = (GroupFragmentBase)getParentFragment();
-			Group targetGroup = groups.get(position);
-			Station station = getStationFromGroup(targetGroup);
-			if(station != null) {
-				groupFragment.showVerbose(station);
-			} else {
-				groupFragment.showChild(targetGroup);
-			}
-		}
-
-		@Override
-		public void onActivityCreated(Bundle savedInstanceState) {
-			super.onActivityCreated(savedInstanceState);
-			updateHeaderText();
-		}
-
-		// MapFragmentの検索フィルタボタンの表示可否を返す
-		public abstract int getMapFilterButtonVisibility();
-		// MapFragmentの検索フィルタボタンがクリックされた
-		public abstract void onMapFilterButtonClicked();
-		// 指定されたGroupがStationを表している場合にそのStationを返し、それ以外はnull
-		public abstract Station getStationFromGroup(Group group);
-		// 指定されたStationを含むGroupがヘッダまたはリスト内に存在する場合にそのGroupを返し、それ以外はnull
-		// ヘッダに合致する場合はGroupの code が 0 になる
-		public abstract Group getGroupFromStation(Station station);
-		// リストに関わるDBクエリが完了した
-		protected abstract void onQueryFinished(String methodName, Object result);
-		// ヘッダに関わるDBクエリが完了した
-		protected abstract boolean onQueryForHeaderFinished(String methodName, Object result);
-
-		// ヘッダをリロードする
-		protected abstract void reloadHeaderGroup();
-		// リストをロードする
-		protected abstract void loadGroups();
-
-		private void updateArguments() {
-			Bundle bundle = new Bundle();
-			bundle.putInt(STATE_PANEL_INDEX, panelIndex);
-			bundle.putParcelable(STATE_HEADER_GROUP, headerGroup);
-			setArguments(bundle);
-		}
-
-		// 指定されたGroupインスタンスが更新された
-		public void updateGroup(Group group) {
-			int code = group.getCode();
-			if(code != 0) {
-				for(int index = groups.size() - 1; index >= 0; --index) {
-					if(groups.get(index).getCode() == code) {
-						groups.set(index, group);
-						if(cellAdapter != null) {
-							cellAdapter.notifyDataSetChanged();
-						}
-					}
-				}
-			} else {
-				headerGroup.copyStatistics(group);
-				updateArguments();
-			}
-		}
-
-		// リストのGroupが指定された内容に更新された
-		public void updateAllGroups(List<Group> newGroups) {
-			groups.clear();
-			groups.ensureCapacity(newGroups.size());
-			groups.addAll(newGroups);
-			if(cellAdapter != null) {
-				cellAdapter.notifyDataSetChanged();
-			}
-		}
-
-		// ヘッダビューの表示を更新する
-		public void updateHeaderText() {
-			Resources resources = getResources();
-			title.setText(headerGroup.getHeaderTitle(resources));
-			description.setText(headerGroup.getDescription(resources));
-		}
-
-		// リスト用のデータベースクエリを実行する
-		protected void callDatabaseForGroups(String methodName, Object... args) {
-			recentRequestSequence = callDatabase(methodName, args);
-			recentRequestLimit = System.currentTimeMillis() + RETRY_MSEC;
-		}
-		// ヘッダ用のデータベースクエリを実行する
-		protected void callDatabaseForHeader(String methodName, Object... args) {
-			recentHeaderRequestSequence = callDatabase(methodName, args);
-			recentHeaderRequestLimit = System.currentTimeMillis() + RETRY_MSEC;
-		}
-
-		@Override
-		protected void onDatabaseConnected(boolean forceReload, List<Station> updatedStations) {
-			//TODO: updatedStationsが存在する場合はリロードが必要かも
-			if(forceReload || groups.isEmpty()) {
-				loadGroups();
-			}
-		}
-
-		@Override
-		protected void onQueryFinished(String methodName, Object result, long sequence) {
-			if(recentRequestSequence == sequence) {
-				recentRequestSequence = Long.MAX_VALUE;
-				onQueryFinished(methodName, result);
-				if(cellAdapter != null) {
-					cellAdapter.notifyDataSetChanged();
-				}
-			} else if(recentHeaderRequestSequence == sequence) {
-				recentHeaderRequestSequence = Long.MAX_VALUE;
-				if(onQueryForHeaderFinished(methodName, result)) {
-					((GroupFragmentBase)getParentFragment()).updateParentListGroup(this);
-				}
-			}
-		}
-
-		// 親がハンドリングする
-		@Override
-		protected final void onDatabaseUpdated() {}
-
-		@Override
-		protected void onStationUpdated(Station station) {
-			Group group = getGroupFromStation(station);
-			if(group != null) {
-				updateGroup(group);
-			}
-		}
-
+	protected static class Panel {
+		public TextView title;
+		public TextView description;
+		public Button mapFilterButton;
+		public ListView listView;
+		public View wrapper;
+		public CellAdapter cellAdapter;
+		public Group headerGroup;
+		public ArrayList<Group> groups = new ArrayList<Group>();
+		public long recentRequestSequence;
+		public long recentRequestLimit = Long.MAX_VALUE;
+		public long recentHeaderRequestSequence;
+		public long recentHeaderRequestLimit = Long.MAX_VALUE;
 	}
-
-	protected abstract ArrayList<Class<? extends PanelFragment>> getFragmentClasses();
-
-	protected static PanelFragment newPanelFragnemt(Class<? extends PanelFragment> clazz, int panelIndex, Group headerGroup) {
-		try {
-			PanelFragment fragment = clazz.newInstance();
-			if(headerGroup != null) {
-				Bundle bundle = new Bundle();
-				bundle.putInt(STATE_PANEL_INDEX, panelIndex);
-				bundle.putParcelable(STATE_HEADER_GROUP, headerGroup);
-				fragment.setArguments(bundle);
-			}
-			return fragment;
-		} catch (java.lang.InstantiationException e) {
-			e.printStackTrace();
-			throw new IllegalStateException("failed to create " + clazz.getCanonicalName());
-		} catch (IllegalAccessException e) {
-			e.printStackTrace();
-			throw new IllegalStateException("failed to create " + clazz.getCanonicalName());
-		}
-	}
-
-	private PanelFragment addFragment(int index, PanelFragment previousFragment, FragmentManager manager, boolean hasNormalAnimation, Group headerGroup) {
-		ArrayList<Class<? extends PanelFragment>> fragmentClasses = getFragmentClasses();
-		if(previousFragment == null) {
-			previousFragment = (PanelFragment)manager.findFragmentByTag(fragmentClasses.get(index - 1).getCanonicalName());
-		}
-		PanelFragment fragment = newPanelFragnemt(fragmentClasses.get(index), index, headerGroup);
-		manager.beginTransaction()
-			.setCustomAnimations(hasNormalAnimation ? R.anim.slide_in_right : R.anim.none, R.anim.none, R.anim.none, R.anim.slide_out_right)
-			.add(fragment, fragmentClasses.get(index).getCanonicalName())
-			.hide(previousFragment)
-			.addToBackStack(index == 1 ? STACK_FIRST : null)
-			.commit();
-		return fragment;
-	}
-
-	private void addStationFragment() {
-		FragmentManager manager = getChildFragmentManager();
-		ArrayList<Class<? extends PanelFragment>> fragmentClasses = getFragmentClasses();
-		Fragment previousFragment = manager.findFragmentByTag(fragmentClasses.get(numPanels - 1).getCanonicalName());
-		StationFragment fragment = new StationFragment();
-		Bundle bundle = new Bundle();
-		bundle.putParcelable(StationFragment.STATE_STATION, station);
-		fragment.setArguments(bundle);
-		manager.beginTransaction()
-			.setCustomAnimations(R.anim.slide_in_right, R.anim.none, R.anim.none, R.anim.slide_out_right)
-			.add(fragment, StationFragment.class.getCanonicalName())
-			.hide(previousFragment)
-			.addToBackStack(null)
-			.commit();
-	}
+	private Panel[] panels;
 
 	@Override
-	public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		getChildFragmentManager().addOnBackStackChangedListener(this);
+	public int getCurrentDepth() { return flipper.getDisplayedChild(); }
+	
+	protected Group getHeaderGroup(int panelIndex) { return panels[panelIndex].headerGroup; }
+	protected void setHeaderGroup(int panelIndex, Group headerGroup) {
+		panels[panelIndex].headerGroup = headerGroup;
+	}
+	protected ArrayList<Group> getGroups(int panelIndex) { return panels[panelIndex].groups; }
+
+	@Override
+	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+		Activity activity = getActivity();
+		View view = inflater.inflate(R.layout.group, container, false);
+
+		flipper = (ViewFlipper)container.findViewById(R.id.group_flipper);
+		inAnimation = AnimationUtils.loadAnimation(activity, R.anim.slide_in_right);
+		outAnimation = AnimationUtils.loadAnimation(activity, R.anim.slide_out_right);
+		nonAnimation = AnimationUtils.loadAnimation(activity, R.anim.none);
+		TypedValue value = new TypedValue();
+		activity.getTheme().resolveAttribute(android.R.attr.colorBackground, value, true);
+		final int panelCount = getPanelCount();
+		panels = new Panel[panelCount];
+		for(int index = 0; index < panelCount; ++index) {
+			final Panel panel = new Panel();
+			final int panelIndex = index;	//for closure
+			final View panelView = inflater.inflate(R.layout.list, null);
+			panelView.setBackgroundResource(value.resourceId);
+			panel.title = (TextView)panelView.findViewById(R.id.title);
+			panel.description = (TextView)panelView.findViewById(R.id.description);
+			panel.mapFilterButton = (Button)panelView.findViewById(R.id.list_button_map_filter);
+			panel.listView = (ListView)panelView.findViewById(R.id.list);
+			panel.wrapper = panelView.findViewById(R.id.wrapper);
+			panel.wrapper.setBackgroundResource(value.resourceId);
+			panel.wrapper.setVisibility(View.VISIBLE);
+			panel.mapFilterButton.setVisibility(getMapFilterButtonVisibility(panelIndex));
+			panel.mapFilterButton.setOnClickListener(new View.OnClickListener() {
+				@Override
+				public void onClick(View v) {
+					onClickMapFilterButton(panelIndex);
+				}
+			});
+			panel.cellAdapter = new CellAdapter(panel.groups, activity);
+			panel.listView.setAdapter(panel.cellAdapter);
+			panel.listView.setOnItemClickListener(new ListView.OnItemClickListener() {
+				@Override
+				public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+					if(flipper.getDisplayedChild() == panelIndex && onSelectGroup(panelIndex, panel.groups.get(position))) {
+						updateText(panelIndex + 1);
+						panels[panelIndex + 1].wrapper.setVisibility(View.VISIBLE);
+						flipper.setInAnimation(inAnimation);
+						flipper.setOutAnimation(nonAnimation);
+						flipper.showNext();
+					}
+				}
+			});
+			flipper.addView(panelView);
+			panels[index] = panel;
+		}
+		
+		return view;
+	}
+
+	protected boolean restoreInstance(final Bundle savedInstanceState) {
+		if(savedInstanceState == null) {
+			return false;
+		}
+		Parcelable[] parcelableArray = savedInstanceState.getParcelableArray(STATE_TAG);
+		if(parcelableArray == null) {
+			return false;
+		}
+		final int displayedChild = parcelableArray.length - 1;
+		if(displayedChild < 0) {
+			return false;
+		}
+		for(int index = displayedChild; index >= 0; --index) {
+			panels[index].headerGroup = (Group)parcelableArray[index];
+			if(isDatabaseReady()) {
+				reloadHeaderGroup(index);
+				loadGroup(index);
+			}
+		}
+		flipper.setInAnimation(null);
+		flipper.setOutAnimation(null);
+		flipper.setDisplayedChild(displayedChild);
+		return true;
+		//return false;
 	}
 
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
-		ArrayList<Class<? extends PanelFragment>> fragmentClasses = getFragmentClasses();
-		//for debug
-		if(fragmentClasses == null) {
-			numPanels = 0;
+		if(!restoreInstance(savedInstanceState)) {
+			panels[0].headerGroup = createDefaultTopHeaderGroup();
+		}
+		updateAllTexts();
+	}
+
+	@Override
+	public void onSaveInstanceState(final Bundle outState) {
+		super.onSaveInstanceState(outState);
+		final int count = flipper.getDisplayedChild() + 1;
+		Group[] headerGroups = new Group[count];
+		for(int index = 0; index < count; ++index) {
+			headerGroups[index] = panels[index].headerGroup;
+		}
+		outState.putParcelableArray(STATE_TAG, headerGroups);
+	}
+	
+	@Override
+	public boolean onBackPressed(MainActivity activity) {
+		if(getCurrentDepth() > 0) {
+			flipper.setInAnimation(nonAnimation);
+			flipper.setOutAnimation(outAnimation);
+			flipper.showPrevious();
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	@Override
+	public boolean onHomeUpPressed(MainActivity activity) {
+		return onBackPressed(activity);
+	}
+	
+
+	protected boolean update1(int panelIndex, Group group) {
+		final Panel panel = panels[panelIndex];
+		final int code = group.getCode();
+		if(code != 0) {
+			for(int index = 0; index < panel.groups.size(); ++index) {
+				if(panel.groups.get(index).getCode() == code) {
+					panel.groups.set(index, group);
+					return true;
+				}
+			}
+			return false;
+		} else {
+			panel.headerGroup.setTotal(group.getTotal());
+			panel.headerGroup.setCompletions(group.getCompletions());
+			return false;
+		}
+	}
+
+	protected void updateAll(int panelIndex, List<Group> newGroups) {
+		final Panel panel = panels[panelIndex];
+		panel.groups.clear();
+		panel.groups.ensureCapacity(newGroups.size());
+		panel.groups.addAll(newGroups);
+	}
+
+	protected abstract int getIdForMenu();
+	protected abstract int getPanelCount();
+	protected abstract int getMapFilterButtonVisibility(int panelIndex);
+	protected abstract void onClickMapFilterButton(int panelIndex);
+	protected abstract boolean onSelectGroup(int panelIndex, Group group);
+	protected abstract boolean updateGroups(int panelIndex, String MethodName, Object result);
+	protected abstract boolean updateHeader(int panelIndex, String MethodName, Object result);
+	protected abstract void reloadHeaderGroup(int panelIndex);
+	protected abstract void loadGroup(int panelIndex);
+	protected abstract Group createDefaultTopHeaderGroup();
+	protected abstract int updateStation(Station station);
+
+	protected void reset() {
+		flipper.setInAnimation(null);
+		flipper.setOutAnimation(null);
+		flipper.setDisplayedChild(0);
+		loadGroup(0);
+	}
+
+	/* must be override */
+	protected void updateText(int panelIndex) {
+		if(!isAlive()) {
 			return;
 		}
+		Resources resources = getResources();
+		final Panel panel = panels[panelIndex];
+		panel.title.setText(panel.headerGroup.getHeaderTitle(resources));
+		panel.description.setText(panel.headerGroup.getDescription(resources));
+	}
 
-		numPanels = savedInstanceState != null ? savedInstanceState.getInt(STATE_NUM_PANELS) : 0;
-		if(numPanels <= 0 || fragmentClasses.size() <= numPanels) {
-			numPanels = 1;
-		}
-		int panelIndex = 0;
-		FragmentManager manager = getChildFragmentManager();
-		PanelFragment fragment = newPanelFragnemt(fragmentClasses.get(panelIndex), panelIndex, null);
-		manager.beginTransaction()
-			.add(R.id.group_flipper, fragment, fragmentClasses.get(panelIndex).getCanonicalName())
-			.commit();
-		while(++panelIndex < numPanels) {
-			fragment = addFragment(panelIndex, fragment, manager, false, null);
-		}
-		station = savedInstanceState != null ? (Station)savedInstanceState.getParcelable(STATE_STATION) : null;
-		if(station != null) {
-			addStationFragment();
+	protected void updateAllTexts() {
+		final int count = flipper.getDisplayedChild() + 1;
+		for(int index = 0; index < count; ++index) {
+			updateText(index);
 		}
 	}
 
-	@Override
-	public void onSaveInstanceState(Bundle outState) {
-		super.onSaveInstanceState(outState);
-		outState.putInt(STATE_NUM_PANELS, numPanels);
-		outState.putParcelable(STATE_STATION, station);
+	protected boolean processReloadHeaderGroup(final int headerPanelIndex, final Group group) {
+		final int currentIndex = getCurrentDepth();
+		if(headerPanelIndex > currentIndex) {
+			return false;
+		}
+		getHeaderGroup(headerPanelIndex).copyStatistics(group);
+		return headerPanelIndex > 0 && update1(headerPanelIndex - 1, group);
+	}
+
+	protected void callDatabase(int panelIndex, String methodName, Object... args) {
+		panels[panelIndex].recentRequestSequence = callDatabase(methodName, args);
+		panels[panelIndex].recentRequestLimit = System.currentTimeMillis() + RETRY_MSEC;
+	}
+	protected void callDatabaseForHeader(int panelIndex, String methodName, Object... args) {
+		panels[panelIndex].recentHeaderRequestSequence = callDatabase(methodName, args);
+		panels[panelIndex].recentHeaderRequestLimit = System.currentTimeMillis() + RETRY_MSEC;
 	}
 
 	@Override
-	public void onBackStackChanged() {
-		FragmentManager manager = getChildFragmentManager();
-		((ActionBarActivity)getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(manager.getBackStackEntryCount() > 0);
-		if(station != null && manager.findFragmentByTag(StationFragment.class.getCanonicalName()) == null) {
-			station = null;
+	protected void onQueryFinished(String methodName, Object result, long sequence) {
+		final int count = panels.length;
+		int updateIndex = -1;
+		for(int index = 0; index < count; ++index) {
+			final Panel panel = panels[index];
+			if(panel.recentRequestSequence == sequence) {
+				panel.recentRequestLimit = Long.MAX_VALUE;
+				if(updateGroups(index, methodName, result)) {
+					updateIndex = index;
+				}
+				break;
+			} else if(panel.recentHeaderRequestSequence == sequence) {
+				panel.recentHeaderRequestLimit = Long.MAX_VALUE;
+				if(updateHeader(index, methodName, result)) {
+					updateIndex = index - 1;
+				}
+				break;
+			}
+		}
+		if(updateIndex >= 0) {
+			final Panel panel = panels[updateIndex];
+			panel.wrapper.setVisibility(View.GONE);
+			panel.cellAdapter.notifyDataSetChanged();
+			updateAllTexts();
 		}
 	}
 
 	@Override
-	public void onDatabaseUpdated() {
-		FragmentManager manager = getChildFragmentManager();
-		if(manager != null) {
-			manager.popBackStack(STACK_FIRST, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+	protected void onDatabaseConnected(boolean forceReload, List<Station> updatedStations) {
+		for(int index = flipper.getDisplayedChild(); index >= 0; --index) {
+			reloadHeaderGroup(index);
+			loadGroup(index);
 		}
 	}
-
-	//NOTUSED
+	
 	@Override
-	protected void onDatabaseConnected(boolean forceReload, List<Station> updatedStations) {}
-
-	//NOTUSED
-	@Override
-	protected void onQueryFinished(String methodName, Object result, long sequence) {}
-
-	//NOTUSED
-	@Override
-	protected void onStationUpdated(Station station) {}
-
-	public void showVerbose(Station station) {
-		this.station = station;
-		addStationFragment();
+	protected void onDatabaseUpdated() {
+		reset();
 	}
-
-	public void showChild(Group group) {
-		addFragment(++numPanels, null, getChildFragmentManager(), true, group);
+	
+	@Override
+	protected void onStationUpdated(Station station) {
+		int panelIndex = updateStation(station);
+		if(panelIndex >= 0) {
+			panels[panelIndex].cellAdapter.notifyDataSetChanged();
+		}
 	}
-
+	
 /*	public void updateAllTexts() {
 		FragmentManager manager = getChildFragmentManager();
 		for(Class<? extends PanelFragment> fragmentClass : getFragmentClasses()) {
@@ -356,17 +312,4 @@ public abstract class GroupFragmentBase extends DBAccessFragmentBase implements 
 			}
 		}
 	}*/
-
-	public void updateParentListGroup(PanelFragment panelFragment) {
-		Bundle arguments = panelFragment.getArguments();
-		int panelIndex = arguments.getInt(STATE_PANEL_INDEX);
-		if(panelIndex > 0) {
-			ArrayList<Class<? extends PanelFragment>> fragmentClasses = getFragmentClasses();
-			FragmentManager manager = getChildFragmentManager();
-			PanelFragment parentFragment = (PanelFragment)manager.findFragmentByTag(fragmentClasses.get(panelIndex - 1).getCanonicalName());
-			if(parentFragment != null) {
-				parentFragment.updateGroup((Group)arguments.getParcelable(STATE_HEADER_GROUP));
-			}
-		}
-	}
 }
