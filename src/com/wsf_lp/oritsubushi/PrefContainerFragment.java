@@ -1,11 +1,12 @@
 package com.wsf_lp.oritsubushi;
 
+import java.util.ArrayList;
+
+import com.wsf_lp.oritsubushi.GroupFragmentBase.PanelFragment;
+
 public class PrefContainerFragment extends GroupFragmentBase {
 
 	@Override
-	protected Class<? extends PanelFragment>[] getFragmentClasses() {
-		// TODO 自動生成されたメソッド・スタブ
-		return null;
-	}
+	protected ArrayList<Class<? extends PanelFragment>> getFragmentClasses() { return null; }
 
 }
