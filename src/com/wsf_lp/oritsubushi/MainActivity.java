@@ -1,5 +1,7 @@
 package com.wsf_lp.oritsubushi;
 
+import java.lang.ref.WeakReference;
+
 import com.wsf_lp.android.PreferenceFragment.OnPreferenceAttachedListener;
 
 import android.content.res.Configuration;
@@ -19,12 +21,15 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
-public class MainActivity extends ActionBarActivity implements OnPreferenceAttachedListener {
+public class MainActivity extends ActionBarActivity implements OnPreferenceAttachedListener, AdapterView.OnItemClickListener, FragmentManager.OnBackStackChangedListener {
 
     private DrawerLayout mDrawerLayout;
     private ListView mDrawerList;
     private ActionBarDrawerToggle mDrawerToggle;
 
+    //DIRTY hack
+    private WeakReference<Fragment> mCurrentFragment;
+    
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -64,15 +69,13 @@ public class MainActivity extends ActionBarActivity implements OnPreferenceAttac
         mDrawerList.setAdapter(FragmentEnum.getMenuAdapter(this, R.layout.drawable_menu));
         mDrawerList.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
         mDrawerList.setItemChecked(0, true);
-        mDrawerList.setOnItemClickListener(mOnItemClickListener);
+        mDrawerList.setOnItemClickListener(this);
     }
 
-    private AdapterView.OnItemClickListener mOnItemClickListener = new AdapterView.OnItemClickListener() {
-        @Override
-        public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-            mDrawerLayout.closeDrawer(mDrawerList);
-        }
-    };
+	@Override
+	public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
+        mDrawerLayout.closeDrawer(mDrawerList);
+	}
 
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
@@ -143,7 +146,19 @@ public class MainActivity extends ActionBarActivity implements OnPreferenceAttac
     }
 
 	@Override
+	public void onBackStackChanged() {
+		
+	}
+
+	@Override
+    public boolean onBackPressed() {
+
+    }
+
+
+	@Override
 	public void onPreferenceAttached(PreferenceScreen root, int xmlId) {
 		;
 	}
+
 }

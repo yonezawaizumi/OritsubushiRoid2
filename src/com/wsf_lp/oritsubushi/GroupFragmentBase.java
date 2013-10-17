@@ -21,7 +21,7 @@ import android.widget.TextView;
 import com.wsf_lp.mapapp.data.Group;
 import com.wsf_lp.mapapp.data.Station;
 
-public abstract class GroupFragmentBase extends DBAccessFragmentBase implements FragmentManager.OnBackStackChangedListener {
+public abstract class GroupFragmentBase extends DBAccessFragmentBase implements FragmentManager.OnBackStackChangedListener, OritsubushiFragmentTraits {
 	public static final String STATE_NUM_PANELS = "numPanels";
 	public static final String STATE_PANEL_INDEX = "panelIndex";
 	public static final String STATE_STATION = "station";
