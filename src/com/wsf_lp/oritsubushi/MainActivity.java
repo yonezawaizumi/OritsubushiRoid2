@@ -1,6 +1,6 @@
 package com.wsf_lp.oritsubushi;
 
-import java.lang.ref.WeakReference;
+import java.util.WeakHashMap;
 
 import com.wsf_lp.android.PreferenceFragment.OnPreferenceAttachedListener;
 
@@ -29,22 +29,15 @@ public class MainActivity extends ActionBarActivity implements
 	private ListView mDrawerList;
 	private ActionBarDrawerToggle mDrawerToggle;
 
-	WeakReference<OnBackPressedListener> mOnBackPressedListener;
+	private WeakHashMap<OnBackPressedListener, String> mOnBackPressedListeners = new WeakHashMap<OnBackPressedListener, String>();
 
-	private OnBackPressedListener getOnBackPressedListener() {
-		return mOnBackPressedListener != null ? mOnBackPressedListener.get()
-				: null;
-	}
 
 	public void registerOnBackPressedListener(OnBackPressedListener listener) {
-		mOnBackPressedListener = new WeakReference<OnBackPressedListener>(
-				listener);
+		mOnBackPressedListeners.put(listener,  "");
 	}
 
 	public void unregisterOnBackPressedListener(OnBackPressedListener listener) {
-		if (getOnBackPressedListener() == listener) {
-			mOnBackPressedListener = null;
-		}
+		mOnBackPressedListeners.remove(listener);
 	}
 
 	@Override
@@ -125,9 +118,10 @@ public class MainActivity extends ActionBarActivity implements
         if (mDrawerToggle.onOptionsItemSelected(item)) {
             return true;
         } else if(item.getItemId() == android.R.id.home) {
-        	OnBackPressedListener listener = getOnBackPressedListener();
-        	if(listener != null && listener.onHomeUpPressed(this)) {
-        		return true;
+        	for(OnBackPressedListener listener : mOnBackPressedListeners.keySet()) {
+        		if(listener.onHomeUpPressed(this)) {
+        			return true;
+        		}
         	}
         } else if(execFragment(item.getItemId())) {
     		supportInvalidateOptionsMenu();
@@ -171,16 +165,23 @@ public class MainActivity extends ActionBarActivity implements
 
 	@Override
 	public void onBackStackChanged() {
-		OnBackPressedListener listener = getOnBackPressedListener();
-		getSupportActionBar().setDisplayHomeAsUpEnabled(listener != null && listener.getCurrentDepth() > 0);
+		boolean enabled = false;
+    	for(OnBackPressedListener listener : mOnBackPressedListeners.keySet()) {
+    		if(listener.isHomeUpEnabled()) {
+    			enabled = true;
+    			break;
+    		}
+    	}
+		getSupportActionBar().setDisplayHomeAsUpEnabled(enabled);
 	}
 
 	@Override
 	public void onBackPressed() {
-		OnBackPressedListener listener = getOnBackPressedListener();
-		if (listener != null && listener.onBackPressed(this)) {
-			return;
-		}
+    	for(OnBackPressedListener listener : mOnBackPressedListeners.keySet()) {
+    		if(listener.onBackPressed(this)) {
+    			return;
+    		}
+    	}
 		super.onBackPressed();
 	}
 

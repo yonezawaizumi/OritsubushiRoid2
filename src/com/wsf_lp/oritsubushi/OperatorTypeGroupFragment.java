@@ -13,7 +13,6 @@ import com.wsf_lp.mapapp.data.Group;
 import com.wsf_lp.mapapp.data.Operator;
 import com.wsf_lp.mapapp.data.OperatorTypes;
 import com.wsf_lp.mapapp.data.Station;
-import com.wsf_lp.oritsubushi.OperatorTypeGroupActivity.StationGroup;
 
 
 public class OperatorTypeGroupFragment extends GroupFragmentBase {
@@ -204,7 +203,7 @@ public class OperatorTypeGroupFragment extends GroupFragmentBase {
 	@Override
 	protected int updateStation(Station station) {
 		final Operator operator = station.getOperator();
-		final int panelIndex = getCurrentDepth();
+		final int panelIndex = getCurrentPanel();
 		int result = -1;
 		boolean found = false;
 		switch(panelIndex) {

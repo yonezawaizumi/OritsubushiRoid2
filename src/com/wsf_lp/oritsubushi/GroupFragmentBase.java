@@ -48,8 +48,7 @@ public abstract class GroupFragmentBase extends DBAccessFragmentBase implements 
 	}
 	private Panel[] panels;
 
-	@Override
-	public int getCurrentDepth() { return flipper.getDisplayedChild(); }
+	public int getCurrentPanel() { return flipper.getDisplayedChild(); }
 
 	protected Group getHeaderGroup(int panelIndex) { return panels[panelIndex].headerGroup; }
 	protected void setHeaderGroup(int panelIndex, Group headerGroup) {
@@ -153,8 +152,8 @@ public abstract class GroupFragmentBase extends DBAccessFragmentBase implements 
 
 	@Override
 	public void onPause() {
-		super.onPause();
 		((MainActivity)getActivity()).unregisterOnBackPressedListener(this);
+		super.onPause();
 	}
 
 	@Override
@@ -170,7 +169,7 @@ public abstract class GroupFragmentBase extends DBAccessFragmentBase implements 
 
 	@Override
 	public boolean onBackPressed(MainActivity activity) {
-		if(getCurrentDepth() > 0) {
+		if(isHomeUpEnabled()) {
 			flipper.setInAnimation(nonAnimation);
 			flipper.setOutAnimation(outAnimation);
 			flipper.showPrevious();
@@ -185,6 +184,10 @@ public abstract class GroupFragmentBase extends DBAccessFragmentBase implements 
 		return onBackPressed(activity);
 	}
 
+	@Override
+	public boolean isHomeUpEnabled() {
+		return flipper != null && flipper.getVisibility() == View.VISIBLE && getCurrentPanel() > 0;
+	}
 
 	protected boolean update1(int panelIndex, Group group) {
 		final Panel panel = panels[panelIndex];
@@ -248,7 +251,7 @@ public abstract class GroupFragmentBase extends DBAccessFragmentBase implements 
 	}
 
 	protected boolean processReloadHeaderGroup(final int headerPanelIndex, final Group group) {
-		final int currentIndex = getCurrentDepth();
+		final int currentIndex = getCurrentPanel();
 		if(headerPanelIndex > currentIndex) {
 			return false;
 		}
