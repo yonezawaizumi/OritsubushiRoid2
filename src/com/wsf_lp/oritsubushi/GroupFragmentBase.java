@@ -211,13 +211,12 @@ public abstract class GroupFragmentBase extends DBAccessFragmentBase implements 
 		panel.groups.addAll(newGroups);
 	}
 
-	protected abstract int getIdForMenu();
 	protected abstract int getPanelCount();
 	protected abstract int getMapFilterButtonVisibility(int panelIndex);
 	protected abstract void onClickMapFilterButton(int panelIndex);
 	protected abstract boolean onSelectGroup(int panelIndex, Group group);
-	protected abstract boolean updateGroups(int panelIndex, String MethodName, Object result);
-	protected abstract boolean updateHeader(int panelIndex, String MethodName, Object result);
+	protected abstract boolean updateGroups(int panelIndex, String methodName, Object result);
+	protected abstract boolean updateHeader(int panelIndex, String methodName, Object result);
 	protected abstract void reloadHeaderGroup(int panelIndex);
 	protected abstract void loadGroup(int panelIndex);
 	protected abstract Group createDefaultTopHeaderGroup();

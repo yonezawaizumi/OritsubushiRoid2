@@ -6,12 +6,6 @@ import com.wsf_lp.mapapp.data.Station;
 public class CompletionDateContainerFragment extends GroupFragmentBase {
 
 	@Override
-	protected int getIdForMenu() {
-		// TODO 自動生成されたメソッド・スタブ
-		return 0;
-	}
-
-	@Override
 	protected int getPanelCount() {
 		// TODO 自動生成されたメソッド・スタブ
 		return 0;

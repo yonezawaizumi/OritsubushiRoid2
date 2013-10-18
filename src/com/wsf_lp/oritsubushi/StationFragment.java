@@ -3,6 +3,9 @@ package com.wsf_lp.oritsubushi;
 import java.util.List;
 
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,6 +32,15 @@ public class StationFragment extends DBAccessFragmentBase {
 
 	private Station station;
 
+	public static void show(Fragment currentFragment, Station station) {
+		FragmentManager manager = ((FragmentActivity)currentFragment.getActivity()).getSupportFragmentManager();
+		StationFragment fragment = new StationFragment();
+		Bundle bundle = new Bundle();
+		bundle.putParcelable(STATE_STATION, station);
+		fragment.setArguments(bundle);
+		manager.beginTransaction().add(fragment, fragment.getClass().getCanonicalName()).hide(currentFragment).addToBackStack(null).commit();
+	}
+	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
