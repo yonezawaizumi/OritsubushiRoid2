@@ -50,7 +50,7 @@ public abstract class GroupFragmentBase extends DBAccessFragmentBase implements 
 
 	@Override
 	public int getCurrentDepth() { return flipper.getDisplayedChild(); }
-	
+
 	protected Group getHeaderGroup(int panelIndex) { return panels[panelIndex].headerGroup; }
 	protected void setHeaderGroup(int panelIndex, Group headerGroup) {
 		panels[panelIndex].headerGroup = headerGroup;
@@ -106,7 +106,7 @@ public abstract class GroupFragmentBase extends DBAccessFragmentBase implements 
 			flipper.addView(panelView);
 			panels[index] = panel;
 		}
-		
+
 		return view;
 	}
 
@@ -146,6 +146,18 @@ public abstract class GroupFragmentBase extends DBAccessFragmentBase implements 
 	}
 
 	@Override
+	public void onResume() {
+		super.onResume();
+		((MainActivity)getActivity()).registerOnBackPressedListener(this);
+	}
+
+	@Override
+	public void onPause() {
+		super.onPause();
+		((MainActivity)getActivity()).unregisterOnBackPressedListener(this);
+	}
+
+	@Override
 	public void onSaveInstanceState(final Bundle outState) {
 		super.onSaveInstanceState(outState);
 		final int count = flipper.getDisplayedChild() + 1;
@@ -155,7 +167,7 @@ public abstract class GroupFragmentBase extends DBAccessFragmentBase implements 
 		}
 		outState.putParcelableArray(STATE_TAG, headerGroups);
 	}
-	
+
 	@Override
 	public boolean onBackPressed(MainActivity activity) {
 		if(getCurrentDepth() > 0) {
@@ -167,12 +179,12 @@ public abstract class GroupFragmentBase extends DBAccessFragmentBase implements 
 			return false;
 		}
 	}
-	
+
 	@Override
 	public boolean onHomeUpPressed(MainActivity activity) {
 		return onBackPressed(activity);
 	}
-	
+
 
 	protected boolean update1(int panelIndex, Group group) {
 		final Panel panel = panels[panelIndex];
@@ -289,12 +301,12 @@ public abstract class GroupFragmentBase extends DBAccessFragmentBase implements 
 			loadGroup(index);
 		}
 	}
-	
+
 	@Override
 	protected void onDatabaseUpdated() {
 		reset();
 	}
-	
+
 	@Override
 	protected void onStationUpdated(Station station) {
 		int panelIndex = updateStation(station);
@@ -302,7 +314,7 @@ public abstract class GroupFragmentBase extends DBAccessFragmentBase implements 
 			panels[panelIndex].cellAdapter.notifyDataSetChanged();
 		}
 	}
-	
+
 /*	public void updateAllTexts() {
 		FragmentManager manager = getChildFragmentManager();
 		for(Class<? extends PanelFragment> fragmentClass : getFragmentClasses()) {

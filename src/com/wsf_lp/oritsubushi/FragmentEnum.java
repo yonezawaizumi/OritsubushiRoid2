@@ -34,7 +34,7 @@ public class FragmentEnum {
 
 	private static final MenuProperty[] MENUS = new MenuProperty[] {
 		new MenuProperty(MapFragment.class, R.id.main, R.drawable.map, R.string.map, MenuItemCompat.SHOW_AS_ACTION_NEVER),
-		new MenuProperty(OperatorTypeContainerFragment.class, R.id.operator_type, R.drawable.operator_type, R.string.operator_type, MenuItemCompat.SHOW_AS_ACTION_NEVER),
+		new MenuProperty(OperatorTypeGroupFragment.class, R.id.operator_type, R.drawable.operator_type, R.string.operator_type, MenuItemCompat.SHOW_AS_ACTION_NEVER),
 		new MenuProperty(PrefContainerFragment.class, R.id.pref, R.drawable.pref, R.string.pref, MenuItemCompat.SHOW_AS_ACTION_NEVER),
 		new MenuProperty(YomiContainerFragment.class, R.id.comp_date, R.drawable.comp_date, R.string.comp_date, MenuItemCompat.SHOW_AS_ACTION_NEVER),
 		new MenuProperty(CompletionDateContainerFragment.class, R.id.yomi, R.drawable.yomi, R.string.yomi, MenuItemCompat.SHOW_AS_ACTION_NEVER),

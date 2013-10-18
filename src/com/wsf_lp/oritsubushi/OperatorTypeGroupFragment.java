@@ -3,7 +3,8 @@ package com.wsf_lp.oritsubushi;
 import com.wsf_lp.mapapp.data.Group;
 import com.wsf_lp.mapapp.data.Station;
 
-public class CompletionDateContainerFragment extends GroupFragmentBase {
+
+public class OperatorTypeGroupFragment extends GroupFragmentBase {
 
 	@Override
 	protected int getIdForMenu() {
