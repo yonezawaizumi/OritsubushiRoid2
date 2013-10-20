@@ -102,7 +102,7 @@ public class OperatorTypeGroupFragment extends GroupFragmentBase {
 			groups.ensureCapacity(pair.second.size());
 			String[] operatorTypes = OperatorTypes.getOperatorTypes(getResources());
 			for(Group group : pair.second) {
-				final String title = operatorTypes[group.getCode()];
+				String title = operatorTypes[group.getCode()];
 				group.setTitle(title);
 				group.setHeaderTitle(title);
 				groups.add(group);
@@ -202,8 +202,8 @@ public class OperatorTypeGroupFragment extends GroupFragmentBase {
 
 	@Override
 	protected int updateStation(Station station) {
-		final Operator operator = station.getOperator();
-		final int panelIndex = getCurrentPanel();
+		Operator operator = station.getOperator();
+		int panelIndex = getCurrentPanelIndex();
 		int result = -1;
 		boolean found = false;
 		switch(panelIndex) {
@@ -233,7 +233,7 @@ public class OperatorTypeGroupFragment extends GroupFragmentBase {
 			if(found) {
 				callDatabaseForHeader(OPERATOR_INDEX, Database.MethodName.RELOAD_OPERATOR_TYPE, getHeaderGroup(OPERATOR_INDEX));
 			} else if(operator.getOperatorType() == getHeaderGroup(OPERATOR_INDEX).getCode()) {
-				final int operatorCode = operator.getCode();
+				int operatorCode = operator.getCode();
 				for(Group group : getGroups(OPERATOR_INDEX)) {
 					if(group.getCode() == operatorCode) {
 						callDatabase(OPERATOR_INDEX, Database.MethodName.RELOAD_OPERATOR, group);

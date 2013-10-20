@@ -117,12 +117,6 @@ public class MainActivity extends ActionBarActivity implements
     public boolean onOptionsItemSelected(MenuItem item) {
         if (mDrawerToggle.onOptionsItemSelected(item)) {
             return true;
-        } else if(item.getItemId() == android.R.id.home) {
-        	for(OnBackPressedListener listener : mOnBackPressedListeners.keySet()) {
-        		if(listener.onHomeUpPressed(this)) {
-        			return true;
-        		}
-        	}
         } else if(execFragment(item.getItemId())) {
     		supportInvalidateOptionsMenu();
         	return true;
@@ -164,18 +158,6 @@ public class MainActivity extends ActionBarActivity implements
 	}
 
 	@Override
-	public void onBackStackChanged() {
-		boolean enabled = false;
-    	for(OnBackPressedListener listener : mOnBackPressedListeners.keySet()) {
-    		if(listener.isHomeUpEnabled()) {
-    			enabled = true;
-    			break;
-    		}
-    	}
-		getSupportActionBar().setDisplayHomeAsUpEnabled(enabled);
-	}
-
-	@Override
 	public void onBackPressed() {
     	for(OnBackPressedListener listener : mOnBackPressedListeners.keySet()) {
     		if(listener.onBackPressed(this)) {
@@ -188,6 +170,12 @@ public class MainActivity extends ActionBarActivity implements
 	@Override
 	public void onPreferenceAttached(PreferenceScreen root, int xmlId) {
 		;
+	}
+
+	@Override
+	public void onBackStackChanged() {
+		// TODO 自動生成されたメソッド・スタブ
+
 	}
 
 }

@@ -38,15 +38,14 @@ public class StationFragment extends DBAccessFragmentBase {
 		Bundle bundle = new Bundle();
 		bundle.putParcelable(STATE_STATION, station);
 		fragment.setArguments(bundle);
-		manager.beginTransaction().add(fragment, fragment.getClass().getCanonicalName()).hide(currentFragment).addToBackStack(null).commit();
+		manager.beginTransaction()
+			.setCustomAnimations(R.anim.slide_in_right, R.anim.none, R.anim.none, R.anim.slide_out_right)
+			.hide(currentFragment)
+			.add(fragment, currentFragment.getClass().getCanonicalName() + '@' + StationFragment.class.getCanonicalName())
+			.addToBackStack(null)
+			.commit();
 	}
-	
-	@Override
-	public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		station = savedInstanceState != null ? (Station)savedInstanceState.getParcelable(STATE_STATION) : null;
-	}
-	
+
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		View view = inflater.inflate(R.layout.verbose, container, false);
@@ -74,29 +73,36 @@ public class StationFragment extends DBAccessFragmentBase {
 		//view.findViewById(R.id.verbose_button_wikipedia).setOnClickListener(wikiProc);
 		//view.findViewById(R.id.verbose_button_move_to).setOnClickListener(moveToProc);
 
-        loadStation();
-
         return view;
 	}
-	
+
+	@Override
+	public void onActivityCreated(Bundle savedInstanceState) {
+		super.onActivityCreated(savedInstanceState);
+		if(station == null) {
+			station = getArguments().getParcelable(STATE_STATION);
+		}
+		loadStation();
+	}
+
 	@Override
 	protected void onDatabaseConnected(boolean forceReload, List<Station> updatedStations) {
 		//TODO:パラメータ使え
 		if(station == null/* || forceReload || updateStations.find(station)*/) {
-			Station station = (Station)getArguments().getParcelable(STATE_STATION);
+			station = (Station)getArguments().getParcelable(STATE_STATION);
 			callDatabase(Database.MethodName.RELOAD_STATION, station);
 		} else {
 			loadStation();
 		}
 	}
-	
+
 	@Override
 	public void onDatabaseDisconnected() {
 		super.onDatabaseDisconnected();
 		editDate.setEnabled(false);
 		editMemo.setEnabled(false);
 	}
-	
+
 	@Override
 	protected void onQueryFinished(String methodName, Object result, long sequence) {
 		updateText();
@@ -121,7 +127,6 @@ public class StationFragment extends DBAccessFragmentBase {
 		}
 		updateText();
 	}
-	
 
 	protected void updateText() {
 		if(!isAlive() || station.isExpired()) {

@@ -48,7 +48,10 @@ public abstract class GroupFragmentBase extends DBAccessFragmentBase implements 
 	}
 	private Panel[] panels;
 
-	public int getCurrentPanel() { return flipper.getDisplayedChild(); }
+	//for retain fragment
+	private int currentPanelIndex;
+
+	public int getCurrentPanelIndex() { return currentPanelIndex; }
 
 	protected Group getHeaderGroup(int panelIndex) { return panels[panelIndex].headerGroup; }
 	protected void setHeaderGroup(int panelIndex, Group headerGroup) {
@@ -57,22 +60,31 @@ public abstract class GroupFragmentBase extends DBAccessFragmentBase implements 
 	protected ArrayList<Group> getGroups(int panelIndex) { return panels[panelIndex].groups; }
 
 	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		int panelCount = getPanelCount();
+		panels = new Panel[panelCount];
+		for(int index = 0; index < panelCount; ++index) {
+			panels[index] = new Panel();
+		}
+	}
+
+	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		Activity activity = getActivity();
 		View view = inflater.inflate(R.layout.group, container, false);
 
-		flipper = (ViewFlipper)container.findViewById(R.id.group_flipper);
+		flipper = (ViewFlipper)view.findViewById(R.id.group_flipper);
 		inAnimation = AnimationUtils.loadAnimation(activity, R.anim.slide_in_right);
 		outAnimation = AnimationUtils.loadAnimation(activity, R.anim.slide_out_right);
 		nonAnimation = AnimationUtils.loadAnimation(activity, R.anim.none);
 		TypedValue value = new TypedValue();
 		activity.getTheme().resolveAttribute(android.R.attr.colorBackground, value, true);
-		final int panelCount = getPanelCount();
-		panels = new Panel[panelCount];
+		int panelCount = getPanelCount();
 		for(int index = 0; index < panelCount; ++index) {
-			final Panel panel = new Panel();
+			Panel panel = panels[index];
 			final int panelIndex = index;	//for closure
-			final View panelView = inflater.inflate(R.layout.list, null);
+			View panelView = inflater.inflate(R.layout.list, null);
 			panelView.setBackgroundResource(value.resourceId);
 			panel.title = (TextView)panelView.findViewById(R.id.title);
 			panel.description = (TextView)panelView.findViewById(R.id.description);
@@ -93,11 +105,12 @@ public abstract class GroupFragmentBase extends DBAccessFragmentBase implements 
 			panel.listView.setOnItemClickListener(new ListView.OnItemClickListener() {
 				@Override
 				public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-					if(flipper.getDisplayedChild() == panelIndex && onSelectGroup(panelIndex, panel.groups.get(position))) {
+					if(getCurrentPanelIndex() == panelIndex && onSelectGroup(panelIndex, panels[panelIndex].groups.get(position))) {
 						updateText(panelIndex + 1);
 						panels[panelIndex + 1].wrapper.setVisibility(View.VISIBLE);
 						flipper.setInAnimation(inAnimation);
 						flipper.setOutAnimation(nonAnimation);
+						++currentPanelIndex;
 						flipper.showNext();
 					}
 				}
@@ -109,28 +122,38 @@ public abstract class GroupFragmentBase extends DBAccessFragmentBase implements 
 		return view;
 	}
 
-	protected boolean restoreInstance(final Bundle savedInstanceState) {
-		if(savedInstanceState == null) {
+	protected boolean restoreInstance(Bundle savedInstanceState) {
+		boolean recreated = panels[0].groups.isEmpty();
+		if(savedInstanceState == null && recreated) {
 			return false;
 		}
-		Parcelable[] parcelableArray = savedInstanceState.getParcelableArray(STATE_TAG);
-		if(parcelableArray == null) {
-			return false;
-		}
-		final int displayedChild = parcelableArray.length - 1;
-		if(displayedChild < 0) {
-			return false;
-		}
-		for(int index = displayedChild; index >= 0; --index) {
-			panels[index].headerGroup = (Group)parcelableArray[index];
-			if(isDatabaseReady()) {
-				reloadHeaderGroup(index);
-				loadGroup(index);
+		if(recreated) {
+			Parcelable[] parcelableArray = savedInstanceState.getParcelableArray(STATE_TAG);
+			if(parcelableArray == null) {
+				return false;
+			}
+			int displayedChild = parcelableArray.length - 1;
+			if(displayedChild < 0) {
+				return false;
+			}
+			currentPanelIndex = displayedChild;
+			for(int index = displayedChild; index >= 0; --index) {
+				panels[index].headerGroup = (Group)parcelableArray[index];
+				if(isDatabaseReady()) {
+					reloadHeaderGroup(index);
+					loadGroup(index);
+				}
+			}
+		} else {
+			//TODO: restore listview position
+			for(int index = 0; index <= currentPanelIndex; ++index) {
+				panels[index].cellAdapter.notifyDataSetChanged();
+				panels[index].wrapper.setVisibility(View.GONE);
 			}
 		}
 		flipper.setInAnimation(null);
 		flipper.setOutAnimation(null);
-		flipper.setDisplayedChild(displayedChild);
+		flipper.setDisplayedChild(getCurrentPanelIndex());
 		return true;
 		//return false;
 	}
@@ -157,11 +180,12 @@ public abstract class GroupFragmentBase extends DBAccessFragmentBase implements 
 	}
 
 	@Override
-	public void onSaveInstanceState(final Bundle outState) {
+	public void onSaveInstanceState(Bundle outState) {
 		super.onSaveInstanceState(outState);
-		final int count = flipper.getDisplayedChild() + 1;
+		int count = getCurrentPanelIndex() + 1;
 		Group[] headerGroups = new Group[count];
 		for(int index = 0; index < count; ++index) {
+			//TODO: save listview position for not calling onCreate()
 			headerGroups[index] = panels[index].headerGroup;
 		}
 		outState.putParcelableArray(STATE_TAG, headerGroups);
@@ -169,9 +193,10 @@ public abstract class GroupFragmentBase extends DBAccessFragmentBase implements 
 
 	@Override
 	public boolean onBackPressed(MainActivity activity) {
-		if(isHomeUpEnabled()) {
+		if(flipper != null && flipper.isShown() && getCurrentPanelIndex() > 0) {
 			flipper.setInAnimation(nonAnimation);
 			flipper.setOutAnimation(outAnimation);
+			--currentPanelIndex;
 			flipper.showPrevious();
 			return true;
 		} else {
@@ -179,19 +204,9 @@ public abstract class GroupFragmentBase extends DBAccessFragmentBase implements 
 		}
 	}
 
-	@Override
-	public boolean onHomeUpPressed(MainActivity activity) {
-		return onBackPressed(activity);
-	}
-
-	@Override
-	public boolean isHomeUpEnabled() {
-		return flipper != null && flipper.getVisibility() == View.VISIBLE && getCurrentPanel() > 0;
-	}
-
 	protected boolean update1(int panelIndex, Group group) {
-		final Panel panel = panels[panelIndex];
-		final int code = group.getCode();
+		Panel panel = panels[panelIndex];
+		int code = group.getCode();
 		if(code != 0) {
 			for(int index = 0; index < panel.groups.size(); ++index) {
 				if(panel.groups.get(index).getCode() == code) {
@@ -208,7 +223,7 @@ public abstract class GroupFragmentBase extends DBAccessFragmentBase implements 
 	}
 
 	protected void updateAll(int panelIndex, List<Group> newGroups) {
-		final Panel panel = panels[panelIndex];
+		Panel panel = panels[panelIndex];
 		panel.groups.clear();
 		panel.groups.ensureCapacity(newGroups.size());
 		panel.groups.addAll(newGroups);
@@ -228,6 +243,7 @@ public abstract class GroupFragmentBase extends DBAccessFragmentBase implements 
 	protected void reset() {
 		flipper.setInAnimation(null);
 		flipper.setOutAnimation(null);
+		currentPanelIndex = 0;
 		flipper.setDisplayedChild(0);
 		loadGroup(0);
 	}
@@ -238,20 +254,20 @@ public abstract class GroupFragmentBase extends DBAccessFragmentBase implements 
 			return;
 		}
 		Resources resources = getResources();
-		final Panel panel = panels[panelIndex];
+		Panel panel = panels[panelIndex];
 		panel.title.setText(panel.headerGroup.getHeaderTitle(resources));
 		panel.description.setText(panel.headerGroup.getDescription(resources));
 	}
 
 	protected void updateAllTexts() {
-		final int count = flipper.getDisplayedChild() + 1;
+		int count = getCurrentPanelIndex() + 1;
 		for(int index = 0; index < count; ++index) {
 			updateText(index);
 		}
 	}
 
-	protected boolean processReloadHeaderGroup(final int headerPanelIndex, final Group group) {
-		final int currentIndex = getCurrentPanel();
+	protected boolean processReloadHeaderGroup(int headerPanelIndex, Group group) {
+		int currentIndex = getCurrentPanelIndex();
 		if(headerPanelIndex > currentIndex) {
 			return false;
 		}
@@ -270,10 +286,10 @@ public abstract class GroupFragmentBase extends DBAccessFragmentBase implements 
 
 	@Override
 	protected void onQueryFinished(String methodName, Object result, long sequence) {
-		final int count = panels.length;
+		int count = panels.length;
 		int updateIndex = -1;
 		for(int index = 0; index < count; ++index) {
-			final Panel panel = panels[index];
+			Panel panel = panels[index];
 			if(panel.recentRequestSequence == sequence) {
 				panel.recentRequestLimit = Long.MAX_VALUE;
 				if(updateGroups(index, methodName, result)) {
@@ -289,7 +305,7 @@ public abstract class GroupFragmentBase extends DBAccessFragmentBase implements 
 			}
 		}
 		if(updateIndex >= 0) {
-			final Panel panel = panels[updateIndex];
+			Panel panel = panels[updateIndex];
 			panel.wrapper.setVisibility(View.GONE);
 			panel.cellAdapter.notifyDataSetChanged();
 			updateAllTexts();
@@ -298,7 +314,7 @@ public abstract class GroupFragmentBase extends DBAccessFragmentBase implements 
 
 	@Override
 	protected void onDatabaseConnected(boolean forceReload, List<Station> updatedStations) {
-		for(int index = flipper.getDisplayedChild(); index >= 0; --index) {
+		for(int index = getCurrentPanelIndex(); index >= 0; --index) {
 			reloadHeaderGroup(index);
 			loadGroup(index);
 		}
