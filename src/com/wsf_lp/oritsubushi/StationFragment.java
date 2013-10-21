@@ -2,6 +2,8 @@ package com.wsf_lp.oritsubushi;
 
 import java.util.List;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -15,9 +17,11 @@ import android.widget.TextView;
 
 import com.wsf_lp.android.Prefs;
 import com.wsf_lp.mapapp.data.Database;
+import com.wsf_lp.mapapp.data.OritsubushiNotificationIntent;
 import com.wsf_lp.mapapp.data.Station;
 
 public class StationFragment extends DBAccessFragmentBase {
+	
 	public static final String STATE_STATION = "station";
 
 	private TextView title;
@@ -31,17 +35,18 @@ public class StationFragment extends DBAccessFragmentBase {
 	private Button editMemo;
 
 	private Station station;
-
+	public Station getStation() { return station; }
+	
 	public static void show(Fragment currentFragment, Station station) {
 		FragmentManager manager = ((FragmentActivity)currentFragment.getActivity()).getSupportFragmentManager();
 		StationFragment fragment = new StationFragment();
 		Bundle bundle = new Bundle();
 		bundle.putParcelable(STATE_STATION, station);
-		fragment.setArguments(bundle);
+		fragment.setArguments(bundle);		
 		manager.beginTransaction()
 			.setCustomAnimations(R.anim.slide_in_right, R.anim.none, R.anim.none, R.anim.slide_out_right)
 			.hide(currentFragment)
-			.add(fragment, currentFragment.getClass().getCanonicalName() + '@' + StationFragment.class.getCanonicalName())
+			.add(MainActivity.CONTENT_VIEW_ID, fragment, currentFragment.getClass().getCanonicalName() + '@' + StationFragment.class.getCanonicalName())
 			.addToBackStack(null)
 			.commit();
 	}
@@ -62,16 +67,33 @@ public class StationFragment extends DBAccessFragmentBase {
 		editDate.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
+				EditDateDialogFragment.newInstance(StationFragment.this).show(getFragmentManager(), EditDateDialogFragment.class.getCanonicalName());
 			}
 		});
-		//completionOnToday.setOnClickListener(compTodayProc);
+		completionOnToday.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				station.setCompletionToday();
+				updateStation(station);
+			}
+		});
 		editMemo.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
 			}
 		});
-		//view.findViewById(R.id.verbose_button_wikipedia).setOnClickListener(wikiProc);
-		//view.findViewById(R.id.verbose_button_move_to).setOnClickListener(moveToProc);
+		view.findViewById(R.id.verbose_button_wikipedia).setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://ja.m.wikipedia.org/wiki/" + Uri.encode(station.getWiki()))));
+			}
+		});
+		view.findViewById(R.id.verbose_button_move_to).setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				getActivity().sendBroadcast(new OritsubushiNotificationIntent().setMapMoveTo(station));
+			}
+		});
 
         return view;
 	}
@@ -79,10 +101,19 @@ public class StationFragment extends DBAccessFragmentBase {
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
+		if(station == null && savedInstanceState != null) {
+			station = savedInstanceState.getParcelable(STATE_STATION);
+		}
 		if(station == null) {
 			station = getArguments().getParcelable(STATE_STATION);
 		}
 		loadStation();
+	}
+	
+	@Override
+	public void onSaveInstanceState(Bundle outState) {
+		super.onSaveInstanceState(outState);
+		outState.putParcelable(STATE_STATION, station);
 	}
 
 	@Override
@@ -117,8 +148,10 @@ public class StationFragment extends DBAccessFragmentBase {
 
 	@Override
 	protected void onStationUpdated(Station station) {
-		this.station = station;
-		updateText();
+		if(this.station.equals(station)) {
+			this.station = station;
+			updateText();
+		}
 	}
 
 	protected void loadStation() {
@@ -144,4 +177,10 @@ public class StationFragment extends DBAccessFragmentBase {
 		editMemo.setEnabled(enableEdit);
 	}
 
+	public void updateStation(Station updatedStation) {
+		station = updatedStation;
+		callDatabase(Database.MethodName.UPDATE_COMPLETION, station);
+		updateText();
+
+	}
 }

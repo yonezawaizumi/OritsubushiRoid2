@@ -2,8 +2,12 @@ package com.wsf_lp.oritsubushi.customs;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.Locale;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Handler;
 import android.text.InputFilter;
@@ -31,6 +35,7 @@ public class NumberPicker extends LinearLayout implements OnClickListener, OnFoc
     private static final String TAG = "NumberPicker";
 
     private static final String NUMBER_PICKER_CLASS_NAME;
+    private static final Method SET_BACKGROUND_METHOD;
 
     static {
         final int sdkVersion = Build.VERSION.SDK_INT;
@@ -40,6 +45,17 @@ public class NumberPicker extends LinearLayout implements OnClickListener, OnFoc
         } else {
             NUMBER_PICKER_CLASS_NAME = "android.widget.NumberPicker";
         }
+        String methodName;
+        if (sdkVersion < 16) {
+        	methodName = "setBackgroundDrawable";
+        } else {
+        	methodName = "setBackground";
+        }
+    	try {
+			SET_BACKGROUND_METHOD = View.class.getMethod(methodName, new Class[]{ Drawable.class });
+		} catch (NoSuchMethodException e) {
+			throw new IllegalStateException(e.toString());
+		}
     }
 
     public interface OnChangedListener {
@@ -165,7 +181,7 @@ public class NumberPicker extends LinearLayout implements OnClickListener, OnFoc
                     field.setAccessible(true);
                 }
                 final ImageButton internalIncrementButton = (ImageButton) field.get(obj);
-                mIncrementButton.setBackgroundDrawable(internalIncrementButton.getBackground());
+                SET_BACKGROUND_METHOD.invoke(mIncrementButton, internalIncrementButton.getBackground());
             }
 
             {
@@ -180,7 +196,7 @@ public class NumberPicker extends LinearLayout implements OnClickListener, OnFoc
                     field.setAccessible(true);
                 }
                 final EditText internalText = (EditText) field.get(obj);
-                mText.setBackgroundDrawable(internalText.getBackground());
+                SET_BACKGROUND_METHOD.invoke(mText, internalText.getBackground());
                 mText.setTextColor(internalText.getTextColors());
                 // TextSizeを適用すると Android 2.2 800x480(hdpi) で、テキストが大きくなってしまうので、コメントアウト。
                 //mText.setTextSize(internalText.getTextSize());
@@ -192,7 +208,7 @@ public class NumberPicker extends LinearLayout implements OnClickListener, OnFoc
                     field.setAccessible(true);
                 }
                 final ImageButton internalDecrementButton = (ImageButton) field.get(obj);
-                mDecrementButton.setBackgroundDrawable(internalDecrementButton.getBackground());
+                SET_BACKGROUND_METHOD.invoke(mDecrementButton, internalDecrementButton.getBackground());
             }
             mButtonsBackgroundInitilized = true;
         } catch (final Exception ex) {
@@ -420,7 +436,7 @@ public class NumberPicker extends LinearLayout implements OnClickListener, OnFoc
     private final NumberPickerButton mDecrementButton;
 
     private class NumberPickerInputFilter implements InputFilter {
-        public CharSequence filter(final CharSequence source, final int start, final int end,
+        @SuppressLint("DefaultLocale") public CharSequence filter(final CharSequence source, final int start, final int end,
                 final Spanned dest, final int dstart, final int dend) {
             if (mDisplayedValues == null) {
                 return mNumberInputFilter.filter(source, start, end, dest, dstart, dend);
@@ -430,9 +446,9 @@ public class NumberPicker extends LinearLayout implements OnClickListener, OnFoc
                 String.valueOf(dest.subSequence(0, dstart))
                     + filtered
                     + dest.subSequence(dend, dest.length());
-            final String str = String.valueOf(result).toLowerCase();
+            final String str = String.valueOf(result).toLowerCase(Locale.ENGLISH);
             for (final String val : mDisplayedValues) {
-                if (val.toLowerCase().startsWith(str)) {
+                if (val.toLowerCase(Locale.ENGLISH).startsWith(str)) {
                     return filtered;
                 }
             }
@@ -491,7 +507,7 @@ public class NumberPicker extends LinearLayout implements OnClickListener, OnFoc
             for (int i = 0; i < mDisplayedValues.length; i++) {
 
                 /* Don't force the user to type in jan when ja will do */
-                if (mDisplayedValues[i].toLowerCase().startsWith(str.toLowerCase())) {
+                if (mDisplayedValues[i].toLowerCase(Locale.ENGLISH).startsWith(str.toLowerCase(Locale.ENGLISH))) {
                     return mStart + i;
                 }
             }

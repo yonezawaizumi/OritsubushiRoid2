@@ -24,6 +24,7 @@ import android.widget.ListView;
 public class MainActivity extends ActionBarActivity implements
 		OnPreferenceAttachedListener, AdapterView.OnItemClickListener,
 		FragmentManager.OnBackStackChangedListener {
+	public static final int CONTENT_VIEW_ID = R.id.content_frame;
 
 	private DrawerLayout mDrawerLayout;
 	private ListView mDrawerList;
@@ -148,7 +149,7 @@ public class MainActivity extends ActionBarActivity implements
 			}
 			FragmentTransaction transaction = fragmentManager
 					.beginTransaction();
-			transaction.replace(R.id.content_frame, fragment, tag);
+			transaction.replace(CONTENT_VIEW_ID, fragment, tag);
 			transaction.addToBackStack(null);
 			transaction.commit();
 			mDrawerList.setItemChecked(position, true);
