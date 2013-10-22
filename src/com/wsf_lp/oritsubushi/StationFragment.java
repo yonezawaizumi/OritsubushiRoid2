@@ -179,8 +179,17 @@ public class StationFragment extends DBAccessFragmentBase {
 	}
 
 	public void updateStation(Station updatedStation) {
-		station = updatedStation;
-		callDatabase(Database.MethodName.UPDATE_COMPLETION, station);
+		boolean updateDate = station.getCompletionDate() != updatedStation.getCompletionDate();
+		boolean updateMemo = !station.getMemo().equals(updatedStation.getMemo());
+		if(updateDate || updateMemo) {
+			station = updatedStation;
+			if(updateDate) {
+				callDatabase(Database.MethodName.UPDATE_COMPLETION, station);
+			}
+			if(updateMemo) {
+				callDatabase(Database.MethodName.UPDATE_MEMO, station);
+			}
+		}
 		updateText();
 
 	}

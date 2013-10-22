@@ -45,10 +45,10 @@ public class EditMemoDialogFragment extends DialogFragment
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
 		if(savedInstanceState != null) {
-			station = savedInstanceState.getParcelable(STATE_STATION);
+			station = new Station((Station)savedInstanceState.getParcelable(STATE_STATION));
 		}
 		if(station == null) {
-			station = getArguments().getParcelable(STATE_STATION);
+			station = new Station((Station)getArguments().getParcelable(STATE_STATION));
 		}
 		getDialog().setTitle(getString(R.string.verbose_edit_memo_title, station.getTitle()));
 		memo.setText(station.getMemo());
