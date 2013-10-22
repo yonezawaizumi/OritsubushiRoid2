@@ -39,7 +39,9 @@
     <string name="verbose_button_edit_memo">編集</string>
     <string name="verbose_button_wikipedia">この駅をウィキペディアで調べる</string>
     <string name="verbose_button_move_to">この駅を地図の中心にする</string>
+    <string name="verbose_edit_comp_date_title_loading">乗下車日</string>
     <string name="verbose_edit_comp_date_title">%sの乗下車日</string>
+    <string name="verbose_edit_memo_title_loading">メモ</string>
     <string name="verbose_edit_memo_title">%sのメモ</string>
     <string name="comp_date_edit_0year">日付不明</string>
     <string name="comp_date_edit_0month">月日不明</string>

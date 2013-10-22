@@ -80,6 +80,7 @@ public class StationFragment extends DBAccessFragmentBase {
 		editMemo.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
+				EditMemoDialogFragment.newInstance(StationFragment.this).show(getChildFragmentManager(), EditMemoDialogFragment.class.getCanonicalName());
 			}
 		});
 		view.findViewById(R.id.verbose_button_wikipedia).setOnClickListener(new OnClickListener() {

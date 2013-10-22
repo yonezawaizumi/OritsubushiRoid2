@@ -87,7 +87,7 @@ public class EditDateDialogFragment extends DialogFragment
 		day0Button.setOnCheckedChangeListener(this);
 		completedCheck.setOnCheckedChangeListener(this);
 		return (new AlertDialog.Builder(activity))
-			.setTitle(R.string.verbose_edit_comp_date_title)
+			.setTitle(R.string.verbose_edit_comp_date_title_loading)
 			.setView(containerView)
 			.setPositiveButton(R.string.ok, this)
 			.setNegativeButton(R.string.cancel, this)
