@@ -11,7 +11,7 @@ import com.wsf_lp.oritsubushi.R;
 
 public class NumberPickerButton extends ImageButton {
 
-    private NumberPicker mNumberPicker;
+    private NumberPickerCompat mNumberPicker;
 
     public NumberPickerButton(final Context context, final AttributeSet attrs, final int defStyle) {
         super(context, attrs, defStyle);
@@ -25,7 +25,7 @@ public class NumberPickerButton extends ImageButton {
         super(context);
     }
 
-    public void setNumberPicker(final NumberPicker picker) {
+    public void setNumberPicker(final NumberPickerCompat picker) {
         mNumberPicker = picker;
     }
 

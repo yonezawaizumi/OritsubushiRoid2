@@ -46,7 +46,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" >
 
-		<com.wsf_lp.oritsubushi.customs.NumberPickerCompat
+		<com.wsf_lp.oritsubushi.customs.NumberPicker11
 		    android:id="@+id/comp_date_edit_year"
 		    android:layout_width="wrap_content"
 		    android:layout_height="wrap_content"
@@ -54,7 +54,7 @@
 		    android:focusable="true"
 		    android:focusableInTouchMode="true" />
 
-		<com.wsf_lp.oritsubushi.customs.NumberPickerCompat
+		<com.wsf_lp.oritsubushi.customs.NumberPicker11
 		    android:id="@+id/comp_date_edit_month"
 		    android:layout_width="wrap_content"
 		    android:layout_height="wrap_content"
@@ -62,7 +62,7 @@
 		    android:focusable="true"
 		    android:focusableInTouchMode="true" />
 
-		<com.wsf_lp.oritsubushi.customs.NumberPickerCompat
+		<com.wsf_lp.oritsubushi.customs.NumberPicker11
 		    android:id="@+id/comp_date_edit_day"
 		    android:layout_width="wrap_content"
 		    android:layout_height="wrap_content"

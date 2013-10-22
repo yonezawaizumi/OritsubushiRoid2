@@ -29,7 +29,7 @@ import android.widget.TextView;
 
 import com.wsf_lp.oritsubushi.R;
 
-public class NumberPicker extends LinearLayout implements OnClickListener, OnFocusChangeListener,
+public class NumberPickerCompat extends LinearLayout implements OnClickListener, OnFocusChangeListener,
         OnLongClickListener {
 
     private static final String TAG = "NumberPicker";
@@ -58,8 +58,8 @@ public class NumberPicker extends LinearLayout implements OnClickListener, OnFoc
 		}
     }
 
-    public interface OnChangedListener {
-        void onChanged(NumberPicker picker, int oldVal, int newVal);
+    public interface OnValueChangeListener {
+        void onValueChange(NumberPickerCompat picker, int oldVal, int newVal);
     }
 
     public interface Formatter {
@@ -71,7 +71,7 @@ public class NumberPicker extends LinearLayout implements OnClickListener, OnFoc
      * formatter etc. is the most efficient way to do this; it avoids creating temporary objects on every call to
      * format().
      */
-    public static final NumberPicker.Formatter TWO_DIGIT_FORMATTER = new NumberPicker.Formatter() {
+    public static final NumberPickerCompat.Formatter TWO_DIGIT_FORMATTER = new NumberPickerCompat.Formatter() {
         final StringBuilder mBuilder = new StringBuilder();
         final java.util.Formatter mFmt = new java.util.Formatter(mBuilder);
         final Object[] mArgs = new Object[1];
@@ -105,7 +105,7 @@ public class NumberPicker extends LinearLayout implements OnClickListener, OnFoc
     private int mEnd;
     private int mCurrent;
     private int mPrevious;
-    private OnChangedListener mListener;
+    private OnValueChangeListener mListener;
     private Formatter mFormatter;
     private long mSpeed = 300;
 
@@ -116,15 +116,15 @@ public class NumberPicker extends LinearLayout implements OnClickListener, OnFoc
 
     private boolean mButtonsBackgroundInitilized;
 
-    public NumberPicker(final Context context) {
+    public NumberPickerCompat(final Context context) {
         this(context, null);
     }
 
-    public NumberPicker(final Context context, final AttributeSet attrs) {
+    public NumberPickerCompat(final Context context, final AttributeSet attrs) {
         this(context, attrs, 0);
     }
 
-    public NumberPicker(final Context context, final AttributeSet attrs, final int defStyle) {
+    public NumberPickerCompat(final Context context, final AttributeSet attrs, final int defStyle) {
         super(context, attrs);
         setOrientation(VERTICAL);
         final LayoutInflater inflater =
@@ -228,7 +228,7 @@ public class NumberPicker extends LinearLayout implements OnClickListener, OnFoc
         mText.setEnabled(enabled);
     }
 
-    public void setOnChangeListener(final OnChangedListener listener) {
+    public void setOnValueChangedListener(final OnValueChangeListener listener) {
         mListener = listener;
     }
 
@@ -265,7 +265,7 @@ public class NumberPicker extends LinearLayout implements OnClickListener, OnFoc
         updateView();
     }
 
-    public void setCurrent(final int current) {
+    public void setValue(final int current) {
         mCurrent = current;
         updateView();
     }
@@ -335,7 +335,7 @@ public class NumberPicker extends LinearLayout implements OnClickListener, OnFoc
 
     private void notifyChange() {
         if (mListener != null) {
-            mListener.onChanged(this, mPrevious, mCurrent);
+            mListener.onValueChange(this, mPrevious, mCurrent);
         }
     }
 
@@ -528,7 +528,7 @@ public class NumberPicker extends LinearLayout implements OnClickListener, OnFoc
     /**
      * @return the current value.
      */
-    public int getCurrent() {
+    public int getValue() {
         return mCurrent;
     }
 

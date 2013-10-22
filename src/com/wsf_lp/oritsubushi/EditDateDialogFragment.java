@@ -4,12 +4,15 @@ import java.util.Calendar;
 import java.util.Date;
 
 import com.wsf_lp.mapapp.data.Station;
-import com.wsf_lp.oritsubushi.customs.NumberPicker;
+import com.wsf_lp.oritsubushi.customs.NumberPickerCompat;
+import com.wsf_lp.oritsubushi.customs.NumberPicker11;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.DialogFragment;
@@ -21,25 +24,31 @@ import android.widget.CompoundButton;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
+@SuppressLint("NewApi")
 public class EditDateDialogFragment extends DialogFragment
 	implements ToggleButton.OnCheckedChangeListener,
-		NumberPicker.OnChangedListener,
+		NumberPickerCompat.OnValueChangeListener,
+		NumberPicker11.OnValueChangeListener11,
 		DialogInterface.OnClickListener,
 		DialogInterface.OnCancelListener {
 	public static final String STATE_STATION = "Station";
-	
+	public static final boolean use11 = Build.VERSION.SDK_INT >= 11;
+
 	private Station station;
 	private int date;
 	private TextView completionDate;
-	private NumberPicker yearPicker;
-	private NumberPicker monthPicker;
-	private NumberPicker dayPicker;
+	private NumberPickerCompat yearPicker;
+	private NumberPickerCompat monthPicker;
+	private NumberPickerCompat dayPicker;
+	private NumberPicker11 yearPicker11;
+	private NumberPicker11 monthPicker11;
+	private NumberPicker11 dayPicker11;
 	private ToggleButton year0Button;
 	private ToggleButton month0Button;
 	private ToggleButton day0Button;
 	private CheckBox completedCheck;
 	private boolean initializing;
-	
+
 	public static EditDateDialogFragment newInstance(StationFragment stationFragment) {
 		EditDateDialogFragment fragment = new EditDateDialogFragment();
 		Bundle bundle = new Bundle();
@@ -48,22 +57,31 @@ public class EditDateDialogFragment extends DialogFragment
 		fragment.setTargetFragment(stationFragment, 0);
 		return fragment;
 	}
-	
+
 	@Override
 	public Dialog onCreateDialog(Bundle savedInstanceState) {
 		FragmentActivity activity = getActivity();
-		View containerView = ((LayoutInflater)activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.comp_date_edit_dialog, null, false);
+		View containerView = ((LayoutInflater)activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(use11 ? R.layout.comp_date_edit_dialog_11 : R.layout.comp_date_edit_dialog, null, false);
 		completionDate = (TextView)containerView.findViewById(R.id.comp_date_date);
-		yearPicker = (NumberPicker)containerView.findViewById(R.id.comp_date_edit_year);
-		monthPicker = (NumberPicker)containerView.findViewById(R.id.comp_date_edit_month);
-		dayPicker = (NumberPicker)containerView.findViewById(R.id.comp_date_edit_day);
+		if(use11) {
+			yearPicker11 = (NumberPicker11)containerView.findViewById(R.id.comp_date_edit_year);
+			monthPicker11 = (NumberPicker11)containerView.findViewById(R.id.comp_date_edit_month);
+			dayPicker11 = (NumberPicker11)containerView.findViewById(R.id.comp_date_edit_day);
+			yearPicker11.setOnValueChangedListener(this);
+			monthPicker11.setOnValueChangedListener(this);
+			dayPicker11.setOnValueChangedListener(this);
+		} else {
+			yearPicker = (NumberPickerCompat)containerView.findViewById(R.id.comp_date_edit_year);
+			monthPicker = (NumberPickerCompat)containerView.findViewById(R.id.comp_date_edit_month);
+			dayPicker = (NumberPickerCompat)containerView.findViewById(R.id.comp_date_edit_day);
+			yearPicker.setOnValueChangedListener(this);
+			monthPicker.setOnValueChangedListener(this);
+			dayPicker.setOnValueChangedListener(this);
+		}
 		year0Button = (ToggleButton)containerView.findViewById(R.id.comp_date_edit_0year);
 		month0Button = (ToggleButton)containerView.findViewById(R.id.comp_date_edit_0month);
 		day0Button = (ToggleButton)containerView.findViewById(R.id.comp_date_edit_0day);
 		completedCheck = (CheckBox)containerView.findViewById(R.id.comp_date_edit_incomp_button);
-		yearPicker.setOnChangeListener(this);
-		monthPicker.setOnChangeListener(this);
-		dayPicker.setOnChangeListener(this);
 		year0Button.setOnCheckedChangeListener(this);
 		month0Button.setOnCheckedChangeListener(this);
 		day0Button.setOnCheckedChangeListener(this);
@@ -75,7 +93,7 @@ public class EditDateDialogFragment extends DialogFragment
 			.setNegativeButton(R.string.cancel, this)
 			.create();
 	}
-	
+
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
@@ -89,36 +107,56 @@ public class EditDateDialogFragment extends DialogFragment
 		setDate();
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(new Date());
-		yearPicker.setRange(1900, calendar.get(Calendar.YEAR));
-		monthPicker.setRange(1, 12);
+		if(use11) {
+			yearPicker11.setRange(1900, calendar.get(Calendar.YEAR));
+			monthPicker11.setRange(1, 12);
+		} else {
+			yearPicker.setRange(1900, calendar.get(Calendar.YEAR));
+			monthPicker.setRange(1, 12);
+		}
 		completedCheck.setChecked(station.isCompleted());
 		int value = Station.calcDay(date);
 		boolean disabled = value == Station.UNANBIGUOUS_DAY;
-		dayPicker.setCurrent(disabled ? 1 : value);
-		dayPicker.setEnabled(!disabled);
+		if(use11) {
+			dayPicker11.setValue(disabled ? 1 : value);
+			dayPicker11.setEnabled(!disabled);
+		} else {
+			dayPicker.setValue(disabled ? 1 : value);
+			dayPicker.setEnabled(!disabled);
+		}
 		day0Button.setChecked(disabled);
 		value = Station.calcMonth(date);
 		disabled = value == Station.UNANBIGUOUS_MONTH;
-		monthPicker.setCurrent(disabled ? 1 : value);
-		monthPicker.setEnabled(!disabled);
+		if(use11) {
+			monthPicker11.setValue(disabled ? 1 : value);
+			monthPicker11.setEnabled(!disabled);
+		} else {
+			monthPicker.setValue(disabled ? 1 : value);
+			monthPicker.setEnabled(!disabled);
+		}
 		month0Button.setChecked(disabled);
 		value = Station.calcYear(date);
 		disabled = value == Station.UNANBIGUOUS_YEAR;
-		yearPicker.setCurrent(disabled ? calendar.get(Calendar.YEAR) : value);
-		yearPicker.setEnabled(!disabled);
+		if(use11) {
+			yearPicker11.setValue(disabled ? calendar.get(Calendar.YEAR) : value);
+			yearPicker11.setEnabled(!disabled);
+		} else {
+			yearPicker.setValue(disabled ? calendar.get(Calendar.YEAR) : value);
+			yearPicker.setEnabled(!disabled);
+		}
 		year0Button.setChecked(disabled);
 		initializing = false;
 		setDayRange();
 		updateVisual();
 		getDialog().setTitle(getString(R.string.verbose_edit_comp_date_title, station.getTitle()));
 	}
-	
+
 	@Override
 	public void onSaveInstanceState(Bundle outState) {
 		super.onSaveInstanceState(outState);
 		outState.putParcelable(STATE_STATION, station);
 	}
-	
+
 	@Override
 	public void onCancel(DialogInterface dialog) {
 		updatePreference();
@@ -139,11 +177,23 @@ public class EditDateDialogFragment extends DialogFragment
 	}
 
 	@Override
-	public void onChanged(NumberPicker picker, int oldVal, int newVal) {
+	public void onValueChange(NumberPickerCompat picker, int oldVal, int newVal) {
 		if(initializing) {
 			return;
 		}
 		if(picker.equals(dayPicker)) {
+			updateCompletionDate();
+		} else {
+			setDayRange();
+		}
+	}
+
+	@Override
+	public void onValueChange(NumberPicker11 picker, int oldVal, int newVal) {
+		if(initializing) {
+			return;
+		}
+		if(picker.equals(dayPicker11)) {
 			updateCompletionDate();
 		} else {
 			setDayRange();
@@ -156,14 +206,22 @@ public class EditDateDialogFragment extends DialogFragment
 			return;
 		}
 		if(buttonView.equals(year0Button)) {
-			yearPicker.setEnabled(!isChecked);
+			if(use11) {
+				yearPicker11.setEnabled(!isChecked);
+			} else {
+				yearPicker.setEnabled(!isChecked);
+			}
 			if(isChecked) {
 				completionDate.requestFocus();
 				month0Button.setChecked(true);
 				day0Button.setChecked(true);
 			}
 		} else if(buttonView.equals(month0Button)) {
-			monthPicker.setEnabled(!isChecked);
+			if(use11) {
+				monthPicker11.setEnabled(!isChecked);
+			} else {
+				monthPicker.setEnabled(!isChecked);
+			}
 			if(isChecked) {
 				completionDate.requestFocus();
 				day0Button.setChecked(true);
@@ -171,7 +229,11 @@ public class EditDateDialogFragment extends DialogFragment
 				year0Button.setChecked(false);
 			}
 		} else if(buttonView.equals(day0Button)) {
-			dayPicker.setEnabled(!isChecked);
+			if(use11) {
+				dayPicker11.setEnabled(!isChecked);
+			} else {
+				dayPicker.setEnabled(!isChecked);
+			}
 			if(isChecked) {
 				completionDate.requestFocus();
 			} else {
@@ -181,7 +243,7 @@ public class EditDateDialogFragment extends DialogFragment
 		}
 		updateCompletionDate();
 	}
-	
+
 	private void setDate() {
 		if(station.isCompleted()) {
 			date = station.getCompletionDate();
@@ -197,9 +259,9 @@ public class EditDateDialogFragment extends DialogFragment
 		PreferenceManager.getDefaultSharedPreferences(getActivity()).edit().putInt(PreferenceKey.RECENT_COMPLETION_DATE, date).commit();
 	}
 	private void setDayRange() {
-		int year = yearPicker.getCurrent();
-		int month = monthPicker.getCurrent();
-		int day = dayPicker.getCurrent();
+		int year = use11 ? yearPicker11.getValue() : yearPicker.getValue();
+		int month = use11 ? monthPicker11.getValue() : monthPicker.getValue();
+		int day = use11 ? dayPicker11.getValue() : dayPicker.getValue();
 		int maxDay;
 		switch(month) {
 		case 2:
@@ -218,15 +280,20 @@ public class EditDateDialogFragment extends DialogFragment
 			maxDay = 31;
 			break;
 		}
-		dayPicker.setRange(1, maxDay);
-		dayPicker.setCurrent(day <= maxDay ? day : maxDay);
+		if(use11) {
+			dayPicker11.setRange(1, maxDay);
+			dayPicker11.setValue(day <= maxDay ? day : maxDay);
+		} else {
+			dayPicker.setRange(1, maxDay);
+			dayPicker.setValue(day <= maxDay ? day : maxDay);
+		}
 		updateCompletionDate();
 	}
 
 	private void updateCompletionDate() {
-		final int year = yearPicker.getCurrent();
-		final int month = monthPicker.getCurrent();
-		final int day = dayPicker.getCurrent();
+		int year = use11 ? yearPicker11.getValue() : yearPicker.getValue();
+		int month = use11 ? monthPicker11.getValue() : monthPicker.getValue();
+		int day = use11 ? dayPicker11.getValue() : dayPicker.getValue();
 		date = Station.calcCompletionDateInt(year, month, day);
 		station.setCompletionDate(completedCheck.isChecked() ? Station.calcCompletionDateInt(
 				year0Button.isChecked() ? Station.UNANBIGUOUS_YEAR : year,
