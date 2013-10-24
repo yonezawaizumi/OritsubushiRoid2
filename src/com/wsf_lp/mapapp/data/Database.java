@@ -7,6 +7,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.support.v4.util.SparseArrayCompat;
 import android.util.Log;
 //import android.os.Debug;
 import android.util.Pair;
@@ -30,7 +31,7 @@ import java.util.zip.ZipException;
 
 import com.wsf_lp.android.Prefs;
 import com.wsf_lp.android.ZippedAssetStreamAndName;
-import com.wsf_lp.mapapp.MapArea;
+import com.wsf_lp.mapapp.MapAreaV2;
 
 //すべてのメソッドは専用のワーカスレッドからのみ呼び出せる
 //UIスレッドからの呼び出しはDatabaseServiceが制御する
@@ -483,7 +484,7 @@ public class Database {
 		}
 	}
 
-	public SparseArray<Station> getStations(MapArea mapArea) {
+	public SparseArrayCompat<Station> getStations(MapAreaV2 mapArea) {
 		Cursor cursor = sqlite.rawQuery(areaSql, new String[] {
 				Integer.toString(mapArea.getCenterLatitude()),
 				Integer.toString(mapArea.getCenterLongitude()),
@@ -493,7 +494,7 @@ public class Database {
 				Integer.toString(mapArea.getMaxLongitude()),
 				maxStationsString
 			} );
-		SparseArray<Station> newStations = new SparseArray<Station>(cursor.getCount());
+		SparseArrayCompat<Station> newStations = new SparseArrayCompat<Station>(cursor.getCount());
 		while(cursor.moveToNext()) {
 			Station station = new Station();
 			station.setFromCursor(cursor, operators);

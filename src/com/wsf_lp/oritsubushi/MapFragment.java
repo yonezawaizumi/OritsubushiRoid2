@@ -1,18 +1,17 @@
 package com.wsf_lp.oritsubushi;
 
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.res.Resources;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.util.Log;
-import android.util.SparseArray;
+import android.support.v4.util.SparseArrayCompat;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -33,7 +32,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.TextView.OnEditorActionListener;
 
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.GoogleMap.InfoWindowAdapter;
 import com.google.android.gms.maps.GoogleMap.OnCameraChangeListener;
 import com.google.android.gms.maps.GoogleMap.OnInfoWindowClickListener;
 import com.google.android.gms.maps.GoogleMap.OnMapClickListener;
@@ -43,11 +44,10 @@ import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
-import com.google.android.maps.GeoPoint;
 import com.wsf_lp.android.GeocoderDialogUtil;
-import com.wsf_lp.mapapp.MapArea;
 import com.wsf_lp.mapapp.MapAreaV2;
-import com.wsf_lp.mapapp.MapPointV2;
+import com.wsf_lp.mapapp.MarkerOptionsUtil;
+import com.wsf_lp.mapapp.StationItem;
 import com.wsf_lp.mapapp.data.Database;
 import com.wsf_lp.mapapp.data.Station;
 
@@ -56,7 +56,7 @@ public class MapFragment extends DBAccessFragmentBase
 	implements ListView.OnItemClickListener,
 		RadioGroup.OnCheckedChangeListener,
 		OnClickListener, OnFocusChangeListener, OnEditorActionListener,
-		OnCameraChangeListener, OnMapClickListener, OnMarkerClickListener, OnInfoWindowClickListener {
+		OnCameraChangeListener, OnMapClickListener, OnMarkerClickListener, OnInfoWindowClickListener, InfoWindowAdapter {
 
 	private static final int[] VISIBILITY_BUTTON_IDS = {
 		R.id.mapbutton_all,
@@ -80,6 +80,7 @@ public class MapFragment extends DBAccessFragmentBase
 	public static final String STATE_STYLE = "Style";
 
 	private MapView mMapView;
+	private View mPopupWindow;
 	private long mWaitMilliSec;
 	private View mControlsContainer;
 	private EditText mSearchEdit;
@@ -89,12 +90,13 @@ public class MapFragment extends DBAccessFragmentBase
 	private int mStyle;
 	private ListView mListView;
 	private ArrayList<Station> mStationList = new ArrayList<Station>();
-	private HashMap<String, Station> mStationMap = new HashMap<String, Station>();
-	private LinkedList<MapPointV2> mCenterPoints = new LinkedList<MapPointV2>();
+	private SparseArrayCompat<StationItem> mStationItems = new SparseArrayCompat<StationItem>();
+	private LinkedList<LatLng> mCenterPoints = new LinkedList<LatLng>();
 	private CellAdapter mCellAdapter;
 	private MapAreaV2 mMapArea;
 	private long mNextUpdateTime;
-	private WeakReference<Marker> mCurrentMarker;
+	private int mPopupStationCode;
+	private boolean mGPSIsDisabled;
 	private boolean mIsActive;
 	private boolean mIsInitialized;
 	private Animation mFadeInAnimation;
@@ -106,6 +108,8 @@ public class MapFragment extends DBAccessFragmentBase
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		mWaitMilliSec = getResources().getInteger(R.integer.settings_map_update_wait_msec);
+		mIsInitialized = false;
+		mPopupStationCode = 0;
 		if(savedInstanceState != null) {
 			mVisibilityType = savedInstanceState.getInt(STATE_VISIBILITY_TYPE);
 			mStyle = savedInstanceState.getInt(STATE_STYLE);
@@ -117,7 +121,10 @@ public class MapFragment extends DBAccessFragmentBase
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+		mGPSIsDisabled = false;
+
 		View contentView = inflater.inflate(R.layout.map, container, false);
+		mPopupWindow = inflater.inflate(R.layout.map_info_window, null);
 
 		mMapView = (MapView)contentView.findViewById(R.id.mapview_skel);
 
@@ -156,23 +163,37 @@ public class MapFragment extends DBAccessFragmentBase
 		mMapView.onCreate(savedInstanceState);
 
 		GoogleMap map = mMapView.getMap();
-		map.setMyLocationEnabled(false);
-		map.setOnCameraChangeListener(this);
-		map.setOnMapClickListener(this);
-		map.setOnMarkerClickListener(this);
-		map.setOnInfoWindowClickListener(this);
-		UiSettings settings = map.getUiSettings();
-		settings.setAllGesturesEnabled(true);
-		settings.setCompassEnabled(true);
-		settings.setMyLocationButtonEnabled(true);
-		settings.setZoomControlsEnabled(true);
+		if(map != null) {
+			map.setMyLocationEnabled(false);
+			map.setOnCameraChangeListener(this);
+			map.setOnMapClickListener(this);
+			map.setOnMarkerClickListener(this);
+			map.setOnInfoWindowClickListener(this);
+			map.setInfoWindowAdapter(this);
+			UiSettings settings = map.getUiSettings();
+			settings.setAllGesturesEnabled(true);
+			settings.setCompassEnabled(true);
+			settings.setMyLocationButtonEnabled(true);
+			settings.setZoomControlsEnabled(true);
+		} else {
+			mGPSIsDisabled = true;
+		}
+		
+		if(mIsInitialized) {
+			View container = getView();
+			//TODO: 検索モード時の処理
+			View wrapper = container.findViewById(R.id.wrapper);
+			wrapper.setVisibility(View.GONE);
+			wrapper = container.findViewById(R.id.loading_wrapper);
+			wrapper.setVisibility(View.GONE);
+		}
 
 		mFadeInAnimation = AnimationUtils.loadAnimation(activity, R.anim.map_controls_fade_in);
 		mFadeOutAnimation = AnimationUtils.loadAnimation(activity, R.anim.map_controls_fade_out);
 	}
 
 	private boolean initialize() {
-		if(isDatabaseEnabled() && mIsActive && !mIsInitialized) {
+		if(isDatabaseEnabled() && mIsActive && !mIsInitialized && !mGPSIsDisabled) {
 			mIsInitialized = true;
 			Animation animation = AnimationUtils.loadAnimation(getActivity(), R.anim.wrapper_fade_out);
 			View container = getView();
@@ -190,7 +211,7 @@ public class MapFragment extends DBAccessFragmentBase
 	}
 
 	private void loadStations() {
-		if(!mIsActive || !isDatabaseEnabled() || mMapView == null) {
+		if(mGPSIsDisabled || !mIsActive || !isDatabaseEnabled() || mMapView == null) {
 			return;
 		}
 		long current = SystemClock.uptimeMillis();
@@ -204,30 +225,72 @@ public class MapFragment extends DBAccessFragmentBase
 			mCenterPoints.addLast(mMapArea.getCenterPoint());
 			mNextUpdateTime = current + mWaitMilliSec;
 			//setLoading();
-			//callDatabase(Database.MethodName.GET_STATIONS, mMapArea.clone());
+			callDatabase(Database.MethodName.GET_STATIONS, mMapArea.clone());
 		}
 	}
 
-	private void updateStations(SparseArray<Station> stations) {
-		Marker currentMarker = mCurrentMarker != null ? mCurrentMarker.get() : null;
-		int currentCode;
-		if(currentMarker != null) {
-			currentMarker.hideInfoWindow();
-//			currentCode = currentMarker.
+	private void updateStations(SparseArrayCompat<Station> newStations) {
+		if(mGPSIsDisabled) {
+			return;
 		}
-/*		stations.clear();
-		stations.ensureCapacity(items.size());
-		for(int index = items.size() - 1; index >= 0; --index) {
-			final Station station = items.valueAt(index).getStation();
+		//マーカー・リストの更新
+		Resources resources = getResources();
+		GoogleMap map = mMapView.getMap();
+		LatLng centerPoint = mCenterPoints.poll();
+		final int size = newStations.size();
+		mStationList.clear();
+		mStationList.ensureCapacity(size);
+		SparseArrayCompat<StationItem> newStationItems = new SparseArrayCompat<StationItem>(size);
+		for(int index = size - 1; index >= 0; --index) {
+			Station station = newStations.valueAt(index);
 			station.calcDistance(centerPoint);
-			stations.add(station);
+			mStationList.add(station);
+			int code = station.getCode();
+			int recentIndex = mStationItems.indexOfKey(code);
+			if(recentIndex >= 0) {
+				StationItem item = mStationItems.valueAt(recentIndex);
+				newStationItems.append(code, item);
+				mStationItems.removeAt(recentIndex);
+			} else {
+				StationItem item = new StationItem(station);
+				newStationItems.append(code, item);
+			}
 		}
-		Collections.sort(stations, Station.getDistanceComparator());
-		mapOverlayView.updateStations(stations);
-		mapOverlayView.getStationsForList(stationList, centerPoints.poll());
-		cellAdapter.notifyDataSetChanged();
-		nextUpdateTime = SystemClock.uptimeMillis();
-		loadStations();*/
+		for(int index = mStationItems.size() - 1; index >= 0; --index) {
+			StationItem item = mStationItems.valueAt(index);
+			if(item.getStation().getCode() == mPopupStationCode) {
+				item.getMarker().hideInfoWindow();
+				mPopupStationCode = 0;
+			}
+			item.removeMarker();
+		}
+		for(int index = newStationItems.size() - 1; index >= 0; --index) {
+			StationItem item = newStationItems.valueAt(index);
+			if(item.getMarker() == null) {
+				item.createMarker(resources, map);
+			}
+		}
+		mStationItems = newStationItems;
+		Collections.sort(mStationList, Station.getDistanceComparator());
+		mCellAdapter.notifyDataSetChanged();
+		mNextUpdateTime = SystemClock.uptimeMillis();
+		loadStations();
+	}
+	
+	private void popupInfoWindow() {
+		if(mPopupStationCode != 0) {
+			StationItem item = mStationItems.get(mPopupStationCode);
+			if(item != null) {
+				mMapView.getMap().moveCamera(CameraUpdateFactory.newLatLng(item.getStation().getLatLng()));
+				item.getMarker().showInfoWindow();
+			} else {
+				mPopupStationCode = 0;
+			}
+		}
+	}
+	
+	private void loadStationSubtitle(Station station) {
+		callDatabase(Database.MethodName.LOAD_LINES, station);
 	}
 
 	@Override
@@ -235,6 +298,9 @@ public class MapFragment extends DBAccessFragmentBase
 		super.onStart();
 		mIsActive = true;
 		mMapView.getMap().setMyLocationEnabled(true);
+		if(mPopupStationCode != 0) {
+			popupInfoWindow();
+		}
 	}
 
 	@Override
@@ -284,13 +350,12 @@ public class MapFragment extends DBAccessFragmentBase
 		mFadeOutAnimation = null;
 		mMapArea = null;
 		mNextUpdateTime = 0;
-		mCurrentMarker = null;
+		mStationItems = null;
 	}
 
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
-		mIsInitialized = false;
 	}
 
 	@Override
@@ -303,7 +368,17 @@ public class MapFragment extends DBAccessFragmentBase
 	@Override
 	protected void onQueryFinished(String methodName, Object result, long sequence) {
 		if(methodName.equals(Database.MethodName.GET_STATIONS)) {
-			updateStations((SparseArray<Station>)result);
+			updateStations((SparseArrayCompat<Station>)result);
+		} else if(methodName.equals(Database.MethodName.LOAD_LINES)) {
+			Station station = (Station)result;
+			int code = station.getCode();
+			StationItem item = mStationItems.get(code);
+			if(item != null) {
+				item.setStation(station);
+				if(mPopupStationCode == code) {
+					popupInfoWindow();
+				}
+			}
 		}
 	}
 
@@ -336,15 +411,53 @@ public class MapFragment extends DBAccessFragmentBase
 	}
 
 	@Override
+	public View getInfoContents(Marker marker) {
+		return null;
+	}
+
+	@Override
+	public View getInfoWindow(Marker marker) {
+		if(mPopupStationCode != 0) {
+			StationItem item = mStationItems.get(mPopupStationCode);
+			if(item != null) {
+				Station station = item.getStation();
+				TextView textView = (TextView)mPopupWindow.findViewById(R.id.title_view);
+				textView.setText(station.getTitle());
+				textView = (TextView)mPopupWindow.findViewById(R.id.operator_view);
+				textView.setText(station.getOperator().getName());
+				textView = (TextView)mPopupWindow.findViewById(R.id.lines_view);
+				textView.setText(station.getLineNames());
+				return mPopupWindow;
+			}
+		}
+		return null;
+	}
+
+	@Override
 	public void onInfoWindowClick(Marker marker) {
-		mCurrentMarker = null;
-		// TODO StationFragment開く
+		marker.hideInfoWindow();
+		StationItem item = mStationItems.get(mPopupStationCode);
+		mPopupStationCode = 0;
+		if(item != null && item.getMarker().equals(marker)) {
+			StationFragment.show(this, item.getStation());
+		}
 	}
 
 	@Override
 	public boolean onMarkerClick(Marker marker) {
-		mCurrentMarker = new WeakReference<Marker>(marker);
-		return false;
+		for(int index = mStationItems.size() - 1; index >= 0; --index) {
+			StationItem item = mStationItems.valueAt(index);
+			if(marker.equals(item.getMarker())) {
+				mPopupStationCode = item.getStation().getCode();
+				if(item.getStation().isReadyToCreateSubtitle()) {
+					return false;
+				} else {
+					loadStationSubtitle(item.getStation());
+					return true;
+				}
+			}
+		}
+		return true;
 	}
 
 	@Override
@@ -360,8 +473,7 @@ public class MapFragment extends DBAccessFragmentBase
 
 	@Override
 	public void onCameraChange(CameraPosition position) {
-		// TODO 自動生成されたメソッド・スタブ
-
+		loadStations();
 	}
 
 	@Override
@@ -436,4 +548,5 @@ public class MapFragment extends DBAccessFragmentBase
 		mIsSearching = false;
 		//TODO:検索バー消す
 	}*/
+
 }

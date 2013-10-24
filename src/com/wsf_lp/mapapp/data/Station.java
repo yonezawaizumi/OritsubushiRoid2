@@ -14,7 +14,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.SparseArray;
 
-import com.google.android.maps.GeoPoint;
+import com.google.android.gms.maps.model.LatLng;
 
 public class Station implements Parcelable, CellItem {
 	public static final int INCOMPLETE = 0;
@@ -25,7 +25,7 @@ public class Station implements Parcelable, CellItem {
 	private int code;
 	private int lat1E6;
 	private int lng1E6;
-	private transient GeoPoint point;
+//	private transient GeoPoint point;
 	private String name;
 
 	private transient double distance = -1.0;
@@ -50,7 +50,7 @@ public class Station implements Parcelable, CellItem {
 		code = src.code;
 		lat1E6 = src.lat1E6;
 		lng1E6 = src.lng1E6;
-		point = src.point;
+//		point = src.point;
 		name = src.name;
 		yomi = src.yomi;
 		wiki = src.wiki;
@@ -72,7 +72,8 @@ public class Station implements Parcelable, CellItem {
 	protected void setCode(int code) { this.code = code; }
 	public int getLatitudeE6() { return lat1E6; }
 	public int getLongitudeE6() { return lng1E6; }
-	public GeoPoint getPoint() {
+/*
+ * 	public GeoPoint getPoint() {
 		if(point == null) {
 			point = new GeoPoint(lat1E6, lng1E6);
 		}
@@ -83,12 +84,14 @@ public class Station implements Parcelable, CellItem {
 		this.lat1E6 = point.getLatitudeE6();
 		this.lng1E6 = point.getLongitudeE6();
 	}
+*/
 	//別スレッドからGeoPointを生成すると極端に遅くなる問題への対処
 	protected void setPoint(int latitudeE6, int longitudeE6) {
 		lat1E6 = latitudeE6;
 		lng1E6 = longitudeE6;
-		point = null;
+		//point = null;
 	}
+	
 	public String getName() { return name; }
 	protected void setName(String name) { this.name = name; }
 	public String getYomi() { return yomi; }
@@ -118,13 +121,13 @@ public class Station implements Parcelable, CellItem {
 	public String getSubtitle() {
 		if(getOperator() == null) {
 			return "-";
-			}
-			StringBuilder builder = new StringBuilder(getOperator().getName());
-			builder.append(" / ");
-			for(Line line : getLines()) {
-				builder.append(line.getName());
-				builder.append(", ");
-			}
+		}
+		StringBuilder builder = new StringBuilder(getOperator().getName());
+		builder.append(" / ");
+		for(Line line : getLines()) {
+			builder.append(line.getName());
+			builder.append(", ");
+		}
 		return builder.substring(0, builder.length() - 2);
 	}
 
@@ -246,7 +249,7 @@ public class Station implements Parcelable, CellItem {
 		}
 	}
 
-	public void calcDistance(GeoPoint centerPoint) {
+	/*public void calcDistance(GeoPoint centerPoint) {
 		double y1 = getPoint().getLatitudeE6() * Math.PI / 180000000;
 		double x1 = getPoint().getLongitudeE6() * Math.PI / 180000000;
 		double y2 = centerPoint.getLatitudeE6() * Math.PI / 180000000;
@@ -255,7 +258,7 @@ public class Station implements Parcelable, CellItem {
 
 		double deg = Math.sin(y1) * Math.sin(y2) + Math.cos(y1) * Math.cos(y2) * Math.cos(x2 - x1);
 		distance = earth_r * (Math.atan(-deg / Math.sqrt(-deg * deg + 1)) + Math.PI / 2) / 1000;
-	}
+	}*/
 
 	private static Comparator<Station> distanceComparator = new Comparator<Station> () {
 		@Override
@@ -305,7 +308,7 @@ public class Station implements Parcelable, CellItem {
 		code = source.readInt();
 		lat1E6 = source.readInt();
 		lng1E6 = source.readInt();
-		point = null;
+//		point = null;
 		name = source.readString();
 		yomi = source.readString();
 		wiki = source.readString();
@@ -353,5 +356,25 @@ public class Station implements Parcelable, CellItem {
 	//for v2
 	public void setExpired() { code = 0; }
 	public boolean isExpired() { return code == 0; }
+	public LatLng getLatLng() {
+		return new LatLng(getLatitudeE6() / 1E6, getLongitudeE6() / 1E6);
+	}
+	public void calcDistance(LatLng centerPoint) {
+		double y1 = lat1E6 * Math.PI / 180000000;
+		double x1 = lng1E6 * Math.PI / 180000000;
+		double y2 = centerPoint.latitude * Math.PI / 180;
+		double x2 = centerPoint.longitude * Math.PI / 180;
+		final double earth_r = 6378137;
 
+		double deg = Math.sin(y1) * Math.sin(y2) + Math.cos(y1) * Math.cos(y2) * Math.cos(x2 - x1);
+		distance = earth_r * (Math.atan(-deg / Math.sqrt(-deg * deg + 1)) + Math.PI / 2) / 1000;
+	}
+	public String getLineNames() {
+		StringBuilder builder = new StringBuilder();
+		for(Line line : getLines()) {
+			builder.append(line.getName());
+			builder.append(", ");
+		}
+		return builder.substring(0, builder.length() - 2);
+	}
 }

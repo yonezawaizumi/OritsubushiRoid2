@@ -466,7 +466,7 @@ public class OritsubushiRoidActivity extends MapActivity
 
 	@Override
 	public void onMapMoveTo(Station station) {
-		mapView.getController().animateTo(station.getPoint());
+		//mapView.getController().animateTo(station.getPoint());
 	}
 
 	@Override

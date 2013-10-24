@@ -18,10 +18,9 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import com.loopj.android.http.BinaryHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
-import com.wsf_lp.oritsubushi.OritsubushiRoidActivity;
+import com.wsf_lp.oritsubushi.MainActivity;
 import com.wsf_lp.oritsubushi.R;
 import com.wsf_lp.oritsubushi.PreferenceKey;
-import com.wsf_lp.oritsubushi.SyncActivity;
 import com.wsf_lp.utils.MethodUtil;
 
 import android.app.Notification;
@@ -270,7 +269,7 @@ public class DatabaseService extends Service
 		if(percentile == 0) {
 			final String statusText = getString(R.string.notification_database_initializing, percentile);
 			//initializingNotification = new Notification(R.drawable.notification, statusText, System.currentTimeMillis());
-			initializingPendingIntent = PendingIntent.getActivity(this, 0, new Intent(this, OritsubushiRoidActivity.class), PendingIntent.FLAG_CANCEL_CURRENT);
+			initializingPendingIntent = PendingIntent.getActivity(this, 0, new Intent(this, MainActivity.class), PendingIntent.FLAG_CANCEL_CURRENT);
 			NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext())
 				.setSmallIcon(R.drawable.notification)
 				.setTicker(statusText)
@@ -359,7 +358,7 @@ public class DatabaseService extends Service
 		final String statusText = getString(R.string.sync_preparing);
 		//syncingNotification = new Notification(R.drawable.notification, statusText, System.currentTimeMillis());
 		//syncingNotification.flags = Notification.FLAG_ONGOING_EVENT | Notification.FLAG_NO_CLEAR;
-		syncingPendingIntent = PendingIntent.getActivity(this, 0, new Intent(this, SyncActivity.class), PendingIntent.FLAG_CANCEL_CURRENT);
+		syncingPendingIntent = PendingIntent.getActivity(this, 0, new Intent(this, MainActivity.class), PendingIntent.FLAG_CANCEL_CURRENT);
 		//syncingNotification.setLatestEventInfo(this, getString(R.string.app_name), statusText, syncingPendingIntent);
 		NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext())
 			.setSmallIcon(R.drawable.notification)

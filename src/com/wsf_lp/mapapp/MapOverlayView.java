@@ -148,10 +148,10 @@ public class MapOverlayView extends Overlay
 			for(int index = drawItems.size() - 1; index >= 0; --index) {
 				//if(index != focusedItemIndex) {
 					StationItem item = drawItems.get(index);
-					if(item.getMarker().getBounds().contains(x, y)) {
+					/*if(item.getMarker().getBounds().contains(x, y)) {
 						selectedItem = item;
 						break;
-					}
+					}*/
 				//}
 			}
 		}
@@ -162,14 +162,14 @@ public class MapOverlayView extends Overlay
 			//	}
 			//	focusedItem = selectedItem;
 			//	Rect bounds = focusedItem.getMarker().getBounds();
-				Rect bounds = selectedItem.getMarker().getBounds();
+				//Rect bounds = selectedItem.getMarker().getBounds();
 			//	mapView.invalidate(bounds);
 			//	Station station = focusedItem.getStation();
 				Station station = selectedItem.getStation();
 				if(station.isReadyToCreateSubtitle()) {
 					//balloon.setStation(focusedItem.getStation());
 					balloon.setStation(station);
-					balloon.realize(bounds.height());
+					//balloon.realize(bounds.height());
 				} else if(databaseService != null) {
 					databaseService.callDatabase(this, Database.MethodName.LOAD_LINES, station);
 				}
@@ -219,14 +219,14 @@ public class MapOverlayView extends Overlay
 	}
 
 	private void drawMarker(Canvas canvas, Projection projection, StationItem item) {
-		Point point = projection.toPixels(item.getStation().getPoint(), null);
-		Drawable marker = item.getMarker();
+		Point point = projection.toPixels(/*item.getStation().getPoint()*/null, null);
+		/*Drawable marker = item.getMarker();
 		int width = marker.getIntrinsicWidth();
 		int height = marker.getIntrinsicHeight();
 		point.x -= width / 2;
 		point.y -= height;
 		marker.setBounds(point.x, point.y, point.x + width, point.y + height);
-		marker.draw(canvas);
+		marker.draw(canvas);*/
 	}
 
 	@Override
@@ -276,7 +276,7 @@ public class MapOverlayView extends Overlay
 			if(item == null) {
 				Station station = stations.valueAt(index);
 				item = new StationItem(station);
-				item.setMarker(station.getMarker(resources));
+				//item.setMarker(station.getMarker(resources));
 			}
 			//focusedItemIsLeft = focusedItemIsLeft || (focusedItemCode != 0 && item.getStation().getCode() == focusedItemCode);
 			newItems.put(code, item);
@@ -311,7 +311,7 @@ public class MapOverlayView extends Overlay
 		StationItem item = items.get(station.getCode());
 		if(item != null) {
 			item.setStation(station);
-			item.setMarker(station.getMarker(mapView.getResources()));
+			//item.setMarker(station.getMarker(mapView.getResources()));
 			mapView.invalidate();
 			if(balloon != null && balloon.getStation() != null && balloon.getStation().equals(station)) {
 				balloon.setStation(station);
@@ -341,7 +341,7 @@ public class MapOverlayView extends Overlay
 		stations.ensureCapacity(items.size());
 		for(int index = items.size() - 1; index >= 0; --index) {
 			final Station station = items.valueAt(index).getStation();
-			station.calcDistance(centerPoint);
+			station.calcDistance(/*centerPoint*/null);
 			stations.add(station);
 		}
 		Collections.sort(stations, Station.getDistanceComparator());
@@ -357,7 +357,7 @@ public class MapOverlayView extends Overlay
 		final StationItem item = station != null ? items.get(station.getCode()) : null;
 		if(item != null) {
 			balloon.setStation(station);
-			balloon.realize(item.getMarker().getBounds().height());
+			//balloon.realize(item.getMarker().getBounds().height());
 		}
 	}
 

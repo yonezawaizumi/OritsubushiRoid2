@@ -188,7 +188,7 @@ public class MapBalloonView extends FrameLayout implements OnTouchListener {
 			MapView.LayoutParams params = new MapView.LayoutParams(
 					LayoutParams.WRAP_CONTENT,
 					LayoutParams.WRAP_CONTENT,
-					station.getPoint(),
+					/*station.getPoint()*/null,
 					MapView.LayoutParams.BOTTOM_CENTER
 			);
 			params.mode = MapView.LayoutParams.MODE_MAP;

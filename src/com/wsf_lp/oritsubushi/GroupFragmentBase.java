@@ -319,9 +319,11 @@ public abstract class GroupFragmentBase extends DBAccessFragmentBase implements 
 		}
 		if(updateIndex >= 0) {
 			Panel panel = mPanels[updateIndex];
-			panel.mWrapper.setVisibility(View.GONE);
-			panel.mCellAdapter.notifyDataSetChanged();
-			updateAllTexts();
+			if(panel != null) {
+				panel.mWrapper.setVisibility(View.GONE);
+				panel.mCellAdapter.notifyDataSetChanged();
+				updateAllTexts();
+			}
 		}
 	}
 

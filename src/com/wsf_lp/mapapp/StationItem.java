@@ -2,14 +2,20 @@ package com.wsf_lp.mapapp;
 
 import java.util.Comparator;
 
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.wsf_lp.mapapp.data.Station;
 
+import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
 
 public class StationItem {
 	private Station station;
 	private long latlng;
-	private Drawable marker;
+	//private Drawable marker;
+	private Marker marker;
 
 	public StationItem(Station station) {
 		this.station = station;
@@ -19,9 +25,25 @@ public class StationItem {
 	public Station getStation() { return station; }
 	public void setStation(Station station) { this.station = station; }
 
-	public Drawable getMarker() { return marker; }
-	public void setMarker(Drawable marker) { this.marker = marker; }
 	public long getLatLng() { return latlng; }
+
+	public Marker getMarker() { return marker; }
+	public Marker createMarker(Resources resources, GoogleMap map) {
+		MarkerOptions opts = new MarkerOptions();
+		opts.title(station.getTitle(resources));
+		opts.snippet(station.getSubtitle());
+		opts.position(station.getLatLng());
+		opts.icon(BitmapDescriptorFactory.fromResource(station.getPinId()));
+		opts.anchor(0.5f, 1.0f);
+		marker = map.addMarker(opts);
+		return marker;
+	}
+	public void removeMarker() {
+		if(marker != null) {
+			marker.remove();
+			marker = null;
+		}
+	}
 
 	@Override
 	public boolean equals(Object dest) {

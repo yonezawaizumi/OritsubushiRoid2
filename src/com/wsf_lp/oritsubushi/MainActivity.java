@@ -2,6 +2,8 @@ package com.wsf_lp.oritsubushi;
 
 import java.util.WeakHashMap;
 
+import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
+import com.google.android.gms.maps.MapsInitializer;
 import com.wsf_lp.android.PreferenceFragment.OnPreferenceAttachedListener;
 
 import android.content.res.Configuration;
@@ -49,6 +51,12 @@ public class MainActivity extends ActionBarActivity implements
         //初期化値を先に設定しておかないとデータベース生成時の初期化が完全に行われない
         PreferenceManager.setDefaultValues(this, R.xml.preference, true);
 
+        try {
+			MapsInitializer.initialize(this);
+		} catch (GooglePlayServicesNotAvailableException e) {
+			e.printStackTrace();
+		}
+        
 		setContentView(R.layout.main_ab);
 
 		ActionBar ab = getSupportActionBar();
@@ -182,5 +190,5 @@ public class MainActivity extends ActionBarActivity implements
 		// TODO 自動生成されたメソッド・スタブ
 
 	}
-
+	
 }

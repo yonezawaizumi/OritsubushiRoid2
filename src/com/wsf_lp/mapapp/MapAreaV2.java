@@ -15,6 +15,8 @@ public class MapAreaV2 implements Cloneable {
 	private int maxLatitude;
 	private int minLongitude;
 	private int maxLongitude;
+	
+	private LatLng centerPoint;
 
 	public MapAreaV2() {
 	}
@@ -36,9 +38,9 @@ public class MapAreaV2 implements Cloneable {
 	public void set(GoogleMap map) {
 		if(map != null) {
 			LatLngBounds bounds = map.getProjection().getVisibleRegion().latLngBounds;
-			LatLng center = bounds.getCenter();
-			centerLatitude = (int)(center.latitude * 1E6);
-			centerLongitude = (int)(center.longitude * 1E6);
+			centerPoint = bounds.getCenter();
+			centerLatitude = (int)(centerPoint.latitude * 1E6);
+			centerLongitude = (int)(centerPoint.longitude * 1E6);
 			minLatitude = (int)(bounds.southwest.latitude * 1E6);
 			minLongitude = (int)(bounds.southwest.longitude * 1E6);
 			maxLatitude = (int)(bounds.northeast.latitude * 1E6);
@@ -57,8 +59,8 @@ public class MapAreaV2 implements Cloneable {
 		}
 	}
 
-	public MapPointV2 getCenterPoint() {
-		return new MapPointV2(centerLatitude, centerLongitude);
+	public LatLng getCenterPoint() {
+		return centerPoint;
 	}
 
 	@Override
