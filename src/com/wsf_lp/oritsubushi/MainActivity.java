@@ -51,12 +51,14 @@ public class MainActivity extends ActionBarActivity implements
         //初期化値を先に設定しておかないとデータベース生成時の初期化が完全に行われない
         PreferenceManager.setDefaultValues(this, R.xml.preference, true);
 
+		int recentFragmentPosition = PreferenceManager.getDefaultSharedPreferences(this).getInt(PreferenceKey.RECENT_FRAGMENT_POSITION, 0);
+
         try {
 			MapsInitializer.initialize(this);
 		} catch (GooglePlayServicesNotAvailableException e) {
 			e.printStackTrace();
 		}
-        
+
 		setContentView(R.layout.main_ab);
 
 		ActionBar ab = getSupportActionBar();
@@ -89,8 +91,11 @@ public class MainActivity extends ActionBarActivity implements
 		mDrawerList.setAdapter(FragmentEnum.getMenuAdapter(this,
 				R.layout.drawable_menu));
 		mDrawerList.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
-		mDrawerList.setItemChecked(0, true);
+		mDrawerList.setItemChecked(recentFragmentPosition, true);
 		mDrawerList.setOnItemClickListener(this);
+		execFragment(0);
+
+		getSupportFragmentManager().addOnBackStackChangedListener(this);
 	}
 
 	@Override
@@ -145,8 +150,7 @@ public class MainActivity extends ActionBarActivity implements
 			position = FragmentEnum.getMenuFragmentPosition(fragmentClass);
 		} else {
 			position = mDrawerList.getCheckedItemPosition();
-			fragmentClass = FragmentEnum
-					.getFragmentClassByMenuPosition(position);
+			fragmentClass = FragmentEnum.getFragmentClassByMenuPosition(position);
 		}
 		if (fragmentClass != null) {
 			String tag = fragmentClass.getCanonicalName();
@@ -187,8 +191,10 @@ public class MainActivity extends ActionBarActivity implements
 
 	@Override
 	public void onBackStackChanged() {
-		// TODO 自動生成されたメソッド・スタブ
-
+		int position = FragmentEnum.getCurrentFragmentPosition(getSupportFragmentManager());
+		if(position >= 0) {
+			PreferenceManager.getDefaultSharedPreferences(this).edit().putInt(PreferenceKey.RECENT_FRAGMENT_POSITION, position).commit();
+		}
 	}
-	
+
 }

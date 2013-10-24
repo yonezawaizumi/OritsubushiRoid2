@@ -32,6 +32,7 @@
     <string name="notification_database_initializing">駅データベース初期化中(%d%%)</string>
     <string name="notification_database_initialized">駅データベースを初期化しました</string>
     <string name="map_wrapper_waiting">初期化中…</string>
+    <string name="map_disabled">Google Play Servicesが起動していないかまたは最新版でないため、地図の表示ができません。</string>
     <string name="verbose_header_date">乗下車日</string>
     <string name="verbose_header_memo">メモ</string>
     <string name="verbose_header_misc">操作</string>

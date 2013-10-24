@@ -2,6 +2,7 @@ package com.wsf_lp.oritsubushi;
 
 import android.content.Context;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.view.MenuItemCompat;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -116,6 +117,24 @@ public class FragmentEnum {
 			}
 			menu.findItem(MENUS[index].id).setVisible(position != AdapterView.INVALID_POSITION && index != position);
 		}
+	}
+
+	public static int getCurrentFragmentPosition(FragmentManager manager) {
+		for(int position = MENUS.length - 1; position >= 0; --position) {
+			MenuProperty property = MENUS[position];
+			if(property.action != MenuItemCompat.SHOW_AS_ACTION_NEVER) {
+				continue;
+			}
+			Fragment fragment = manager.findFragmentByTag(property.fragmentClass.getCanonicalName());
+			if(fragment == null) {
+				continue;
+			}
+			View container = fragment.getView();
+			if(container != null && container.isShown()) {
+				return position;
+			}
+		}
+		return -1;
 	}
 
 }

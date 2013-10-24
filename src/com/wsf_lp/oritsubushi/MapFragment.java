@@ -7,9 +7,11 @@ import java.util.List;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.os.SystemClock;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.support.v4.util.SparseArrayCompat;
 import android.view.KeyEvent;
@@ -32,6 +34,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.TextView.OnEditorActionListener;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMap.InfoWindowAdapter;
@@ -82,6 +86,7 @@ public class MapFragment extends DBAccessFragmentBase
 	private MapView mMapView;
 	private View mPopupWindow;
 	private long mWaitMilliSec;
+	private int mInfoWindowAnimationDuration;
 	private View mControlsContainer;
 	private EditText mSearchEdit;
 	private RadioGroup mVisibilityTypeGroup;
@@ -96,7 +101,7 @@ public class MapFragment extends DBAccessFragmentBase
 	private MapAreaV2 mMapArea;
 	private long mNextUpdateTime;
 	private int mPopupStationCode;
-	private boolean mGPSIsDisabled;
+	private boolean mGPSIsEnabled;
 	private boolean mIsActive;
 	private boolean mIsInitialized;
 	private Animation mFadeInAnimation;
@@ -107,7 +112,9 @@ public class MapFragment extends DBAccessFragmentBase
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		mWaitMilliSec = getResources().getInteger(R.integer.settings_map_update_wait_msec);
+		Resources resources = getResources();
+		mWaitMilliSec = resources.getInteger(R.integer.settings_map_update_wait_msec);
+		mInfoWindowAnimationDuration = resources.getInteger(R.integer.settings_map_info_window_animation_duration);
 		mIsInitialized = false;
 		mPopupStationCode = 0;
 		if(savedInstanceState != null) {
@@ -121,12 +128,10 @@ public class MapFragment extends DBAccessFragmentBase
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		mGPSIsDisabled = false;
-
 		View contentView = inflater.inflate(R.layout.map, container, false);
 		mPopupWindow = inflater.inflate(R.layout.map_info_window, null);
 
-		mMapView = (MapView)contentView.findViewById(R.id.mapview_skel);
+		mMapView = (MapView)contentView.findViewById(R.id.mapview);
 
 		mControlsContainer = contentView.findViewById(R.id.layout_controls_container);
 
@@ -159,11 +164,18 @@ public class MapFragment extends DBAccessFragmentBase
 		super.onActivityCreated(savedInstanceState);
 
 		Activity activity = getActivity();
+		View container = getView();
 
-		mMapView.onCreate(savedInstanceState);
+		mGPSIsEnabled = GooglePlayServicesUtil.isGooglePlayServicesAvailable(activity) == ConnectionResult.SUCCESS;
 
-		GoogleMap map = mMapView.getMap();
-		if(map != null) {
+		container.findViewById(R.id.map_disabled).setVisibility(mGPSIsEnabled ? View.GONE : View.VISIBLE);
+
+		View wrapper = container.findViewById(R.id.wrapper);
+		View loadingWrapper = container.findViewById(R.id.loading_wrapper);
+
+		if(mGPSIsEnabled) {
+			mMapView.onCreate(savedInstanceState);
+			GoogleMap map = mMapView.getMap();
 			map.setMyLocationEnabled(false);
 			map.setOnCameraChangeListener(this);
 			map.setOnMapClickListener(this);
@@ -175,170 +187,105 @@ public class MapFragment extends DBAccessFragmentBase
 			settings.setCompassEnabled(true);
 			settings.setMyLocationButtonEnabled(true);
 			settings.setZoomControlsEnabled(true);
+
+			if(mIsInitialized) {
+				//TODO: 検索モード時の処理
+				wrapper.setVisibility(View.GONE);
+				loadingWrapper.setVisibility(View.GONE);
+			}
+
+			mFadeInAnimation = AnimationUtils.loadAnimation(activity, R.anim.map_controls_fade_in);
+			mFadeOutAnimation = AnimationUtils.loadAnimation(activity, R.anim.map_controls_fade_out);
 		} else {
-			mGPSIsDisabled = true;
-		}
-		
-		if(mIsInitialized) {
-			View container = getView();
-			//TODO: 検索モード時の処理
-			View wrapper = container.findViewById(R.id.wrapper);
+			mMapView.setVisibility(View.GONE);
 			wrapper.setVisibility(View.GONE);
-			wrapper = container.findViewById(R.id.loading_wrapper);
-			wrapper.setVisibility(View.GONE);
+			loadingWrapper.setVisibility(View.GONE);
+			mControlsContainer.setVisibility(View.GONE);
 		}
-
-		mFadeInAnimation = AnimationUtils.loadAnimation(activity, R.anim.map_controls_fade_in);
-		mFadeOutAnimation = AnimationUtils.loadAnimation(activity, R.anim.map_controls_fade_out);
-	}
-
-	private boolean initialize() {
-		if(isDatabaseEnabled() && mIsActive && !mIsInitialized && !mGPSIsDisabled) {
-			mIsInitialized = true;
-			Animation animation = AnimationUtils.loadAnimation(getActivity(), R.anim.wrapper_fade_out);
-			View container = getView();
-			View wrapper = container.findViewById(R.id.wrapper);
-			wrapper.startAnimation(animation);
-			wrapper.setVisibility(View.GONE);
-			wrapper = container.findViewById(R.id.loading_wrapper);
-			wrapper.startAnimation(animation);
-			wrapper.setVisibility(View.GONE);
-			loadStations();
-			return true;
-		} else {
-			return false;
-		}
-	}
-
-	private void loadStations() {
-		if(mGPSIsDisabled || !mIsActive || !isDatabaseEnabled() || mMapView == null) {
-			return;
-		}
-		long current = SystemClock.uptimeMillis();
-		if(mMapArea != null && current < mNextUpdateTime) {
-			return;
-		}
-		MapAreaV2 currentMapArea = new MapAreaV2(mMapView.getMap());
-		if(mMapArea == null || !currentMapArea.equals(mMapArea)) {
-			Log.d(this.getClass().getName(), "loadStations-2(update)");
-			mMapArea = currentMapArea;
-			mCenterPoints.addLast(mMapArea.getCenterPoint());
-			mNextUpdateTime = current + mWaitMilliSec;
-			//setLoading();
-			callDatabase(Database.MethodName.GET_STATIONS, mMapArea.clone());
-		}
-	}
-
-	private void updateStations(SparseArrayCompat<Station> newStations) {
-		if(mGPSIsDisabled) {
-			return;
-		}
-		//マーカー・リストの更新
-		Resources resources = getResources();
-		GoogleMap map = mMapView.getMap();
-		LatLng centerPoint = mCenterPoints.poll();
-		final int size = newStations.size();
-		mStationList.clear();
-		mStationList.ensureCapacity(size);
-		SparseArrayCompat<StationItem> newStationItems = new SparseArrayCompat<StationItem>(size);
-		for(int index = size - 1; index >= 0; --index) {
-			Station station = newStations.valueAt(index);
-			station.calcDistance(centerPoint);
-			mStationList.add(station);
-			int code = station.getCode();
-			int recentIndex = mStationItems.indexOfKey(code);
-			if(recentIndex >= 0) {
-				StationItem item = mStationItems.valueAt(recentIndex);
-				newStationItems.append(code, item);
-				mStationItems.removeAt(recentIndex);
-			} else {
-				StationItem item = new StationItem(station);
-				newStationItems.append(code, item);
-			}
-		}
-		for(int index = mStationItems.size() - 1; index >= 0; --index) {
-			StationItem item = mStationItems.valueAt(index);
-			if(item.getStation().getCode() == mPopupStationCode) {
-				item.getMarker().hideInfoWindow();
-				mPopupStationCode = 0;
-			}
-			item.removeMarker();
-		}
-		for(int index = newStationItems.size() - 1; index >= 0; --index) {
-			StationItem item = newStationItems.valueAt(index);
-			if(item.getMarker() == null) {
-				item.createMarker(resources, map);
-			}
-		}
-		mStationItems = newStationItems;
-		Collections.sort(mStationList, Station.getDistanceComparator());
-		mCellAdapter.notifyDataSetChanged();
-		mNextUpdateTime = SystemClock.uptimeMillis();
-		loadStations();
-	}
-	
-	private void popupInfoWindow() {
-		if(mPopupStationCode != 0) {
-			StationItem item = mStationItems.get(mPopupStationCode);
-			if(item != null) {
-				mMapView.getMap().moveCamera(CameraUpdateFactory.newLatLng(item.getStation().getLatLng()));
-				item.getMarker().showInfoWindow();
-			} else {
-				mPopupStationCode = 0;
-			}
-		}
-	}
-	
-	private void loadStationSubtitle(Station station) {
-		callDatabase(Database.MethodName.LOAD_LINES, station);
 	}
 
 	@Override
 	public void onStart() {
 		super.onStart();
 		mIsActive = true;
-		mMapView.getMap().setMyLocationEnabled(true);
-		if(mPopupStationCode != 0) {
-			popupInfoWindow();
+		if(mGPSIsEnabled) {
+			GoogleMap map = mMapView.getMap();
+			map.setMyLocationEnabled(true);
+			if(mPopupStationCode != 0) {
+				popupInfoWindow();
+			} else {
+				SharedPreferences preference = PreferenceManager.getDefaultSharedPreferences(getActivity());
+				CameraPosition position = new CameraPosition(
+						new LatLng(
+								preference.getFloat(PreferenceKey.MAP_CAMERA_LAT, 0),
+								preference.getFloat(PreferenceKey.MAP_CAMERA_LNG, 0)
+						),
+						preference.getFloat(PreferenceKey.MAP_CAMERA_ZOOM, map.getMinZoomLevel()),
+						preference.getFloat(PreferenceKey.MAP_CAMERA_TILT, 0),
+						preference.getFloat(PreferenceKey.MAP_CAMERA_BEARING, 0)
+				);
+				map.moveCamera(CameraUpdateFactory.newCameraPosition(position));
+			}
 		}
 	}
 
 	@Override
 	public void onResume() {
 		super.onResume();
-		mMapView.onResume();
-		initialize();
+		if(mGPSIsEnabled) {
+			mMapView.onResume();
+			initialize();
+		}
 	}
 
 	@Override
 	public void onPause() {
 		super.onPause();
-		mMapView.onPause();
+		if(mGPSIsEnabled) {
+			mMapView.onPause();
+		}
 	}
 
 	@Override
 	public void onStop() {
 		super.onStop();
 		mIsActive = false;
-		mMapView.getMap().setMyLocationEnabled(false);
+		if(mGPSIsEnabled) {
+			GoogleMap map = mMapView.getMap();
+			map.setMyLocationEnabled(false);
+			CameraPosition position = map.getCameraPosition();
+			PreferenceManager.getDefaultSharedPreferences(getActivity()).edit()
+				.putFloat(PreferenceKey.MAP_CAMERA_LAT, (float)position.target.latitude)
+				.putFloat(PreferenceKey.MAP_CAMERA_LNG, (float)position.target.longitude)
+				.putFloat(PreferenceKey.MAP_CAMERA_ZOOM, (float)position.zoom)
+				.putFloat(PreferenceKey.MAP_CAMERA_TILT, (float)position.tilt)
+				.putFloat(PreferenceKey.MAP_CAMERA_BEARING, (float)position.bearing)
+				.commit();
+		}
 	}
 
 	@Override
 	public void onSaveInstanceState(Bundle outState) {
 		super.onSaveInstanceState(outState);
-		mMapView.onSaveInstanceState(outState);
+		if(mGPSIsEnabled && mMapView != null) {
+			mMapView.onSaveInstanceState(outState);
+		}
 	}
 
 	@Override
 	public void onLowMemory() {
 		super.onLowMemory();
-		mMapView.onLowMemory();
+		if(mGPSIsEnabled) {
+			mMapView.onLowMemory();
+		}
 	}
 
 	@Override
 	public void onDestroyView() {
 		super.onDestroyView();
-		mMapView.onDestroy();
+		if(mGPSIsEnabled) {
+			mMapView.onDestroy();
+		}
 		mMapView = null;
 		mControlsContainer = null;
 		mSearchEdit = null;
@@ -350,7 +297,9 @@ public class MapFragment extends DBAccessFragmentBase
 		mFadeOutAnimation = null;
 		mMapArea = null;
 		mNextUpdateTime = 0;
-		mStationItems = null;
+		mStationList.clear();
+		mStationItems.clear();
+		mCenterPoints.clear();
 	}
 
 	@Override
@@ -435,9 +384,7 @@ public class MapFragment extends DBAccessFragmentBase
 
 	@Override
 	public void onInfoWindowClick(Marker marker) {
-		marker.hideInfoWindow();
 		StationItem item = mStationItems.get(mPopupStationCode);
-		mPopupStationCode = 0;
 		if(item != null && item.getMarker().equals(marker)) {
 			StationFragment.show(this, item.getStation());
 		}
@@ -499,6 +446,107 @@ public class MapFragment extends DBAccessFragmentBase
 	@Override
 	public void onClick(View v) {
 		v.requestFocusFromTouch();
+	}
+
+	private boolean initialize() {
+		if(isDatabaseEnabled() && mIsActive && !mIsInitialized && mGPSIsEnabled) {
+			mIsInitialized = true;
+			Animation animation = AnimationUtils.loadAnimation(getActivity(), R.anim.wrapper_fade_out);
+			View container = getView();
+			View wrapper = container.findViewById(R.id.wrapper);
+			wrapper.startAnimation(animation);
+			wrapper.setVisibility(View.GONE);
+			wrapper = container.findViewById(R.id.loading_wrapper);
+			wrapper.startAnimation(animation);
+			wrapper.setVisibility(View.GONE);
+			loadStations();
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	private void loadStations() {
+		if(!mGPSIsEnabled || !mIsActive || !isDatabaseEnabled() || mMapView == null) {
+			return;
+		}
+		long current = SystemClock.uptimeMillis();
+		if(mMapArea != null && current < mNextUpdateTime) {
+			return;
+		}
+		MapAreaV2 currentMapArea = new MapAreaV2(mMapView.getMap());
+		if(mMapArea == null || !currentMapArea.equals(mMapArea)) {
+			Log.d(this.getClass().getName(), "loadStations-2(update)");
+			mMapArea = currentMapArea;
+			mCenterPoints.addLast(mMapArea.getCenterPoint());
+			mNextUpdateTime = current + mWaitMilliSec;
+			//setLoading();
+			callDatabase(Database.MethodName.GET_STATIONS, mMapArea.clone());
+		}
+	}
+
+	private void updateStations(SparseArrayCompat<Station> newStations) {
+		if(!mGPSIsEnabled) {
+			return;
+		}
+		//マーカー・リストの更新
+		Resources resources = getResources();
+		GoogleMap map = mMapView.getMap();
+		LatLng centerPoint = mCenterPoints.poll();
+		final int size = newStations.size();
+		mStationList.clear();
+		mStationList.ensureCapacity(size);
+		SparseArrayCompat<StationItem> newStationItems = new SparseArrayCompat<StationItem>(size);
+		for(int index = size - 1; index >= 0; --index) {
+			Station station = newStations.valueAt(index);
+			station.calcDistance(centerPoint);
+			mStationList.add(station);
+			int code = station.getCode();
+			int recentIndex = mStationItems.indexOfKey(code);
+			if(recentIndex >= 0) {
+				StationItem item = mStationItems.valueAt(recentIndex);
+				newStationItems.append(code, item);
+				mStationItems.removeAt(recentIndex);
+			} else {
+				StationItem item = new StationItem(station);
+				newStationItems.append(code, item);
+			}
+		}
+		for(int index = mStationItems.size() - 1; index >= 0; --index) {
+			StationItem item = mStationItems.valueAt(index);
+			if(item.getStation().getCode() == mPopupStationCode) {
+				item.getMarker().hideInfoWindow();
+				mPopupStationCode = 0;
+			}
+			item.removeMarker();
+		}
+		for(int index = newStationItems.size() - 1; index >= 0; --index) {
+			StationItem item = newStationItems.valueAt(index);
+			if(item.getMarker() == null) {
+				item.createMarker(resources, map);
+			}
+		}
+		mStationItems = newStationItems;
+		Collections.sort(mStationList, Station.getDistanceComparator());
+		mCellAdapter.notifyDataSetChanged();
+		mNextUpdateTime = SystemClock.uptimeMillis();
+		loadStations();
+	}
+
+	private void popupInfoWindow() {
+		if(mPopupStationCode != 0) {
+			StationItem item = mStationItems.get(mPopupStationCode);
+			if(item != null) {
+				mMapView.getMap().animateCamera(CameraUpdateFactory.newLatLng(item.getStation().getLatLng()), mInfoWindowAnimationDuration, null);
+				item.getMarker().showInfoWindow();
+			} else {
+				mPopupStationCode = 0;
+			}
+		}
+	}
+
+	private void loadStationSubtitle(Station station) {
+		callDatabase(Database.MethodName.LOAD_LINES, station);
 	}
 
 	private void doSearch() {
