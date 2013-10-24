@@ -15,15 +15,17 @@ import android.widget.EditText;
 
 public class EditMemoDialogFragment extends DialogFragment
 	implements DialogInterface.OnClickListener {
-	public static final String STATE_STATION = "Station";
+	public static final String STATE_MEMO = "Memo";
+	public static final String STATE_TITLE = "Title";
 
-	private Station station;
 	private EditText memo;
 
 	public static EditMemoDialogFragment newInstance(StationFragment stationFragment) {
 		EditMemoDialogFragment fragment = new EditMemoDialogFragment();
+		Station station = stationFragment.getStation();
 		Bundle bundle = new Bundle();
-		bundle.putParcelable(STATE_STATION, stationFragment.getStation());
+		bundle.putString(STATE_MEMO, station.getMemo());
+		bundle.putString(STATE_TITLE, station.getTitle());
 		fragment.setArguments(bundle);
 		fragment.setTargetFragment(stationFragment, 0);
 		return fragment;
@@ -44,14 +46,16 @@ public class EditMemoDialogFragment extends DialogFragment
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
+		String memoString = null;
 		if(savedInstanceState != null) {
-			station = new Station((Station)savedInstanceState.getParcelable(STATE_STATION));
+			memoString = savedInstanceState.getString(STATE_MEMO);
 		}
-		if(station == null) {
-			station = new Station((Station)getArguments().getParcelable(STATE_STATION));
+		Bundle argumentsBundle = getArguments();
+		if(memoString == null) {
+			memoString = argumentsBundle.getString(STATE_MEMO);
 		}
-		getDialog().setTitle(getString(R.string.verbose_edit_memo_title, station.getTitle()));
-		memo.setText(station.getMemo());
+		getDialog().setTitle(getString(R.string.verbose_edit_memo_title, argumentsBundle.getString(STATE_TITLE)));
+		memo.setText(memoString != null ? memoString : "");
 		memo.setOnFocusChangeListener(new OnFocusChangeListener() {
 			@Override
 			public void onFocusChange(View v, boolean hasFocus) {
@@ -65,15 +69,14 @@ public class EditMemoDialogFragment extends DialogFragment
 	@Override
 	public void onSaveInstanceState(Bundle outState) {
 		super.onSaveInstanceState(outState);
-		outState.putParcelable(STATE_STATION, station);
+		outState.putString(STATE_MEMO, memo.getText().toString());
 	}
 
 	@Override
 	public void onClick(DialogInterface dialog, int which) {
 		switch(which) {
 		case DialogInterface.BUTTON_POSITIVE:
-			station.setMemo(memo.getText().toString());
-			((StationFragment)getTargetFragment()).updateStation(station);
+			((StationFragment)getTargetFragment()).updateMemo(memo.getText().toString());
 			dialog.cancel();
 			break;
 		case DialogInterface.BUTTON_NEGATIVE:

@@ -6,6 +6,7 @@ import com.wsf_lp.android.PreferenceFragment.OnPreferenceAttachedListener;
 
 import android.content.res.Configuration;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.preference.PreferenceScreen;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.app.Fragment;
@@ -44,6 +45,9 @@ public class MainActivity extends ActionBarActivity implements
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+
+        //初期化値を先に設定しておかないとデータベース生成時の初期化が完全に行われない
+        PreferenceManager.setDefaultValues(this, R.xml.preference, true);
 
 		setContentView(R.layout.main_ab);
 

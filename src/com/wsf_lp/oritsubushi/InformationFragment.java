@@ -21,20 +21,20 @@ import android.widget.Button;
 public class InformationFragment extends Fragment {
 
 	private static class MyWebViewClient extends WebViewClient {
-		private final WeakReference<Fragment> fragment;
-		private final String myUrl;
+		private final WeakReference<Fragment> mFragment;
+		private final String mMyUrl;
 
 		private MyWebViewClient(Fragment fragment, String myUrl) {
-			this.fragment = new WeakReference<Fragment>(fragment);
-			this.myUrl = myUrl;
+			mFragment = new WeakReference<Fragment>(fragment);
+			mMyUrl = myUrl;
 		}
 
 		@Override
 		public boolean shouldOverrideUrlLoading(WebView view, String url) {
-			if(myUrl.equals(url)) {
+			if(mMyUrl.equals(url)) {
 				return false;
-			} else if (fragment.get() != null){
-				fragment.get().startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
+			} else if (mFragment.get() != null){
+				mFragment.get().startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
 				return true;
 			} else {
 				return false;
@@ -43,53 +43,53 @@ public class InformationFragment extends Fragment {
 	}
 
 	private static class HttpResponseHandler extends AsyncHttpResponseHandler {
-		private WeakReference<InformationFragment> fragment;
+		private WeakReference<InformationFragment> mFragment;
 		public HttpResponseHandler(InformationFragment fragment) {
-			this.fragment = new WeakReference<InformationFragment>(fragment);
+			mFragment = new WeakReference<InformationFragment>(fragment);
 		}
 		@Override
 		public void onSuccess(String response) {
-			InformationFragment fragment = this.fragment.get();
+			InformationFragment fragment = mFragment.get();
 			if(fragment != null) {
 				fragment.onLoadSuccess(response);
 			}
 		}
 		@Override
 		public void onFailure(Throwable error, String response) {
-			InformationFragment fragment = this.fragment.get();
+			InformationFragment fragment = mFragment.get();
 			if(fragment != null) {
 				fragment.onLoadFailure(response);
 			}
 		}
 	}
 
-	AsyncHttpClient httpClient = new AsyncHttpClient();
-	Button reload;
-	WebView webView;
-	String myUrl;
-	String content;
-	String contentType;
-	boolean loading;
+	AsyncHttpClient mHttpClient = new AsyncHttpClient();
+	Button mReloadButton;
+	WebView mWebView;
+	String mMyUrl;
+	String mContent;
+	String mContentType;
+	boolean mIsLoading;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		myUrl = getString(R.string.information_url);
+		mMyUrl = getString(R.string.information_url);
 		load();
 	}
 
 	private void setContent() {
-		if(content != null) {
-			webView.loadDataWithBaseURL(myUrl, content, contentType, "UTF-8", null);
+		if(mContent != null) {
+			mWebView.loadDataWithBaseURL(mMyUrl, mContent, mContentType, "UTF-8", null);
 		}
 	}
 
 	private void onLoadFinish(String content, String contentType) {
-		this.content = content;
-		this.contentType = contentType;
-		if(webView != null) {
-			loading = false;
-			reload.setEnabled(true);
+		this.mContent = content;
+		this.mContentType = contentType;
+		if(mWebView != null) {
+			mIsLoading = false;
+			mReloadButton.setEnabled(true);
 			setContent();
 		}
 	}
@@ -103,9 +103,9 @@ public class InformationFragment extends Fragment {
 	}
 
 	private void load() {
-		if(!loading) {
-			loading = true;
-			httpClient.get(myUrl, new HttpResponseHandler(this));
+		if(!mIsLoading) {
+			mIsLoading = true;
+			mHttpClient.get(mMyUrl, new HttpResponseHandler(this));
 		}
 	}
 
@@ -114,26 +114,26 @@ public class InformationFragment extends Fragment {
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		View view = inflater.inflate(R.layout.info, container, false);
 
-		reload = (Button)view.findViewById(R.id.button_reload);
-		reload.setEnabled(false);
-		webView = (WebView)view.findViewById(R.id.web_view);
-		reload.setOnClickListener(new OnClickListener() {
+		mReloadButton = (Button)view.findViewById(R.id.button_reload);
+		mReloadButton.setEnabled(false);
+		mWebView = (WebView)view.findViewById(R.id.web_view);
+		mReloadButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				reload.setEnabled(false);
+				mReloadButton.setEnabled(false);
 				load();
 			}
 		});
-		webView.getSettings().setJavaScriptEnabled(true);
-		webView.setWebViewClient(new MyWebViewClient(this, myUrl));
+		mWebView.getSettings().setJavaScriptEnabled(true);
+		mWebView.setWebViewClient(new MyWebViewClient(this, mMyUrl));
 
 		return view;
 	}
 
 	@Override
 	public void onResume() {
-		if(!loading) {
-			reload.setEnabled(true);
+		if(!mIsLoading) {
+			mReloadButton.setEnabled(true);
 			setContent();
 		}
 		super.onResume();
@@ -141,15 +141,15 @@ public class InformationFragment extends Fragment {
 
 	@Override
 	public void onDestroyView() {
-		reload = null;
-		webView = null;
+		mReloadButton = null;
+		mWebView = null;
 		super.onDestroyView();
 	}
 
 	@Override
 	public void onDestroy() {
-		if(loading) {
-			httpClient.cancelRequests(getActivity(), true);
+		if(mIsLoading) {
+			mHttpClient.cancelRequests(getActivity(), true);
 		}
 		super.onDestroy();
 	}

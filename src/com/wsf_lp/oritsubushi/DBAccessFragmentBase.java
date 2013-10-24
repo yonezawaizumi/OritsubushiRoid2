@@ -20,81 +20,90 @@ public abstract class DBAccessFragmentBase extends Fragment
 	public static final String STATE_RECENT_DB_NOTIFY = "recentDBNotify";
 	protected static final long RETRY_MSEC = 5000;
 
-	private boolean isAlive;
-	private long recentDBNotifySequence;
-	
-	private DatabaseServiceConnector connector;
-	private DatabaseService databaseService;
-	private OritsubushiBroadcastReceiver broadcastReceiver;
+	private boolean mIsAlive;
+	private boolean mIsEnabled;
+	private long mRecentDBNotifySequence;
 
-	public boolean isAlive() { return isAlive; }
-	protected DatabaseService getDatabaseService() { return databaseService; }
-	public boolean isDatabaseReady() { return databaseService != null; }
+	private DatabaseServiceConnector mConnector;
+	private DatabaseService mDatabaseService;
+	private OritsubushiBroadcastReceiver mBroadcastReceiver;
 
-	protected abstract void onDatabaseConnected(boolean forceReload, List<Station> updatedStations);
+	public boolean isAlive() { return mIsAlive; }
+	protected DatabaseService getDatabaseService() { return mDatabaseService; }
+	public boolean isDatabaseEnabled() { return mIsEnabled; }
+
+	protected abstract void onDatabaseConnected(boolean isEnabled, boolean forceReload, List<Station> updatedStations);
 	protected abstract void onQueryFinished(String methodName, Object result, long sequence);
-	protected abstract void onDatabaseUpdated();
+	protected abstract void onDatabaseUpdated(boolean isFirst);
 	protected abstract void onStationUpdated(Station station);
-	
+
 	protected long callDatabase(String methodName, Object... args) {
-		return isDatabaseReady() ? getDatabaseService().callDatabase(this, methodName, args) : Long.MAX_VALUE;
+		return isDatabaseEnabled() ? getDatabaseService().callDatabase(this, methodName, args) : Long.MAX_VALUE;
 	}
-	
+
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		isAlive = true;
-		recentDBNotifySequence = savedInstanceState != null ? savedInstanceState.getLong(STATE_RECENT_DB_NOTIFY) : 0;
-		
-        broadcastReceiver = new OritsubushiBroadcastReceiver(this);
-        broadcastReceiver.registerTo(getActivity(), OritsubushiNotificationIntent.getIntentFilter());
-        connector = new DatabaseServiceConnector();
-        connector.connect(getActivity(), this);
-        
+		mIsAlive = true;
+		mRecentDBNotifySequence = savedInstanceState != null ? savedInstanceState.getLong(STATE_RECENT_DB_NOTIFY) : 0;
+
+        mBroadcastReceiver = new OritsubushiBroadcastReceiver(this);
+        mBroadcastReceiver.registerTo(getActivity(), OritsubushiNotificationIntent.getIntentFilter());
+        mConnector = new DatabaseServiceConnector();
+        mConnector.connect(getActivity(), this);
+
         setRetainInstance(true);
 	}
 
 	@Override
 	public void onSaveInstanceState(Bundle outState) {
 		super.onSaveInstanceState(outState);
-		outState.putLong(STATE_RECENT_DB_NOTIFY, recentDBNotifySequence);
+		outState.putLong(STATE_RECENT_DB_NOTIFY, mRecentDBNotifySequence);
 	}
-	
+
 	@Override
 	public void onDestroy() {
-		isAlive = false;
-		broadcastReceiver.unregisterFrom(getActivity());
-		connector.disconnect();
+		mIsAlive = false;
+		mBroadcastReceiver.unregisterFrom(getActivity());
+		mConnector.disconnect();
 		super.onDestroy();
 	}
 
 	@Override
 	public final void onDatabaseConnected(DatabaseService service) {
 		if(isAlive()) {
-			this.databaseService = service;
+			mDatabaseService = service;
+			mIsEnabled = service.isEnabled();
 			//TODO: recentDBNotifySequence をDBに問い合わせて最新の更新情報を得る
-			onDatabaseConnected(false, null);
+			onDatabaseConnected(mIsEnabled, false, null);
 		}
 	}
-	
+
 	@Override
-	public void onDatabaseDisconnected() {
-		this.databaseService = null;
+	public final void onDatabaseDisconnected() {
+		mDatabaseService = null;
+		mIsEnabled = false;
+		onDatabaseDisconnected(false);
 	}
-	
+
+	public void onDatabaseDisconnected(boolean dummy) {
+	}
+
 	@Override
 	public final void onDatabaseResult(long sequence, String methodName, Object result) {
 		if(isAlive()) {
 			onQueryFinished(methodName, result, sequence);
 		}
 	}
-	
+
 	@Override
 	public final void onDatabaseUpdated(Station station, int sequence) {
-		recentDBNotifySequence = sequence;
+		mRecentDBNotifySequence = sequence;
 		if(station == null) {
-			onDatabaseUpdated();
+			boolean isFirst = !mIsEnabled;
+			mIsEnabled = true;
+			onDatabaseUpdated(isFirst);
 		} else {
 			onStationUpdated(station);
 		}

@@ -24,6 +24,7 @@
     <string name="map">地図</string>
     <string name="mapbutton_map">地図</string>
     <string name="mapbutton_satellite">衛星</string>
+    <string name="mapbutton_hybrid">複合</string>
     <string name="mapbutton_list">一覧</string>
     <string name="mapbutton_all">全駅</string>
     <string name="mapbutton_comp">済</string>

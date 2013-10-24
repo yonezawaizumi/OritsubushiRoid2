@@ -167,7 +167,7 @@ public class DatabaseService extends Service
 						}
 						service.onProgress(-1);
 						//TODO: sequence
-						service.sendBroadcast(new OritsubushiNotificationIntent().setNeedsReload(/*sequecne*/0));
+						service.sendBroadcast(new OritsubushiNotificationIntent().setNeedsReload(/*sequence*/0));
 					}
 				});
 			}

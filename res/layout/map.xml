@@ -1,0 +1,330 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/map_root"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:focusable="false"
+    android:focusableInTouchMode="false" >
+
+    <ListView
+        android:id="@+id/map_list_view"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:visibility="invisible" >
+    </ListView>
+
+    <com.google.android.gms.maps.MapView
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/mapview_skel"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent" />
+
+    <FrameLayout
+        android:id="@+id/layout_controls_container"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent" >
+
+        <LinearLayout
+            android:id="@+id/visual_controls"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="bottom"
+            android:orientation="vertical"
+            android:paddingRight="48dip" >
+
+            <RadioGroup
+                android:id="@+id/radio_map_visibility"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="right"
+                android:orientation="horizontal"
+                android:padding="5dip" >
+
+                <RadioButton
+                    android:id="@+id/mapbutton_all"
+                    style="@drawable/segmented_left"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/segmented_left"
+                    android:button="@null"
+                    android:checked="true"
+                    android:gravity="center_vertical|center_horizontal"
+                    android:height="32dip"
+                    android:text="@string/mapbutton_all"
+                    android:textSize="13sp"
+                    android:width="48dip" />
+
+                <RadioButton
+                    android:id="@+id/mapbutton_comp"
+                    style="@drawable/segmented_center"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/segmented_center"
+                    android:button="@null"
+                    android:gravity="center_vertical|center_horizontal"
+                    android:height="32dip"
+                    android:text="@string/mapbutton_comp"
+                    android:textSize="13sp"
+                    android:width="48dip" />
+
+                <RadioButton
+                    android:id="@+id/mapbutton_incomp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/segmented_right"
+                    android:button="@null"
+                    android:gravity="center_vertical|center_horizontal"
+                    android:height="32dip"
+                    android:text="@string/mapbutton_incomp"
+                    android:textSize="13sp"
+                    android:width="48dip" />
+            </RadioGroup>
+
+            <RadioGroup
+                android:id="@+id/radio_map_style"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="right"
+                android:orientation="horizontal"
+                android:padding="5dip" >
+
+                <RadioButton
+                    android:id="@+id/mapbutton_map"
+                    style="@drawable/segmented_left"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/segmented_left"
+                    android:button="@null"
+                    android:checked="true"
+                    android:gravity="center_vertical|center_horizontal"
+                    android:height="32dip"
+                    android:text="@string/mapbutton_map"
+                    android:textSize="13sp"
+                    android:width="48dip" />
+
+                <RadioButton
+                    android:id="@+id/mapbutton_satellite"
+                    style="@drawable/segmented_center"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/segmented_center"
+                    android:button="@null"
+                    android:gravity="center_vertical|center_horizontal"
+                    android:height="32dip"
+                    android:text="@string/mapbutton_satellite"
+                    android:textSize="13sp"
+                    android:width="48dip" />
+
+                <RadioButton
+                    android:id="@+id/mapbutton_hybrid"
+                    style="@drawable/segmented_center"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/segmented_center"
+                    android:button="@null"
+                    android:gravity="center_vertical|center_horizontal"
+                    android:height="32dip"
+                    android:text="@string/mapbutton_hybrid"
+                    android:textSize="13sp"
+                    android:width="48dip" />
+
+                <RadioButton
+                    android:id="@+id/mapbutton_list"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/segmented_right"
+                    android:button="@null"
+                    android:gravity="center_vertical|center_horizontal"
+                    android:height="32dip"
+                    android:text="@string/mapbutton_list"
+                    android:textSize="13sp"
+                    android:width="48dip" />
+            </RadioGroup>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/location_wrapper"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#00000033"
+            android:orientation="vertical" >
+
+            <LinearLayout
+                android:id="@+id/filter_controls"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal" >
+
+                <EditText
+                    android:id="@+id/text_search"
+                    android:layout_width="0dip"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:layout_weight="1"
+                    android:focusable="true"
+                    android:focusableInTouchMode="false"
+                    android:imeOptions="actionSearch"
+                    android:inputType="text"
+                    android:paddingLeft="48dip"
+                    android:paddingRight="48dip"
+                    android:singleLine="true"
+                    android:textSize="24sp" />
+
+            </LinearLayout>
+
+            <RadioGroup
+                android:id="@+id/search_types"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="5dip"
+                android:visibility="gone" >
+
+                <RadioButton
+                    android:id="@+id/search_type_location"
+                    style="@drawable/segmented_left"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@drawable/segmented_left"
+                    android:button="@null"
+                    android:gravity="center_vertical|center_horizontal"
+                    android:height="32dip"
+                    android:text="@string/search_type_location"
+                    android:textSize="13sp" />
+
+                <RadioButton
+                    android:id="@+id/search_type_pref"
+                    style="@drawable/segmented_center"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@drawable/segmented_center"
+                    android:button="@null"
+                    android:gravity="center_vertical|center_horizontal"
+                    android:height="32dip"
+                    android:text="@string/search_type_pref"
+                    android:textSize="13sp" />
+
+                <RadioButton
+                    android:id="@+id/search_type_name"
+                    style="@drawable/segmented_center"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@drawable/segmented_center"
+                    android:button="@null"
+                    android:gravity="center_vertical|center_horizontal"
+                    android:height="32dip"
+                    android:text="@string/search_type_name"
+                    android:textSize="13sp" />
+
+                                <RadioButton
+                    android:id="@+id/search_type_yomi"
+                    style="@drawable/segmented_center"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@drawable/segmented_center"
+                    android:button="@null"
+                    android:gravity="center_vertical|center_horizontal"
+                    android:height="32dip"
+                    android:text="@string/search_type_yomi"
+                    android:textSize="13sp" />
+
+                                <RadioButton
+                    android:id="@+id/search_type_line"
+                    style="@drawable/segmented_center"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@drawable/segmented_center"
+                    android:button="@null"
+                    android:gravity="center_vertical|center_horizontal"
+                    android:height="32dip"
+                    android:text="@string/search_type_line"
+                    android:textSize="13sp" />
+
+                <RadioButton
+                    android:id="@+id/search_type_date"
+                    style="@drawable/segmented_right"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@drawable/segmented_right"
+                    android:button="@null"
+                    android:gravity="center_vertical|center_horizontal"
+                    android:height="32dip"
+                    android:text="@string/search_type_date"
+                    android:textSize="13sp" />
+            </RadioGroup>
+
+            <RadioGroup
+                android:id="@+id/search_conds"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="5dip"
+                android:visibility="gone" >
+
+                <RadioButton
+                    android:id="@+id/search_cond_start"
+                    style="@drawable/segmented_left"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@drawable/segmented_left"
+                    android:button="@null"
+                    android:gravity="center_vertical|center_horizontal"
+                    android:height="32dip"
+                    android:text="@string/search_cond_start"
+                    android:textSize="13sp" />
+
+                <RadioButton
+                    android:id="@+id/search_cond_contain"
+                    style="@drawable/segmented_right"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@drawable/segmented_right"
+                    android:button="@null"
+                    android:gravity="center_vertical|center_horizontal"
+                    android:height="32dip"
+                    android:text="@string/search_cond_contain"
+                    android:textSize="13sp" />
+            </RadioGroup>
+            </LinearLayout>
+
+    </FrameLayout>
+
+    <View
+        android:id="@+id/wrapper"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:background="#8000"
+        android:clickable="true" />
+
+    <RelativeLayout
+        android:id="@+id/loading_wrapper"
+        android:layout_width="match_parent"
+        android:layout_height="fill_parent" >
+
+        <View
+            android:id="@+id/view1"
+            android:layout_width="1dp"
+            android:layout_height="1dp"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            android:minHeight="1dp"
+            android:minWidth="1dp" />
+
+        <ProgressBar
+            android:id="@+id/progressBar1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_above="@+id/view1"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="2dp" />
+    </RelativeLayout>
+
+</FrameLayout>

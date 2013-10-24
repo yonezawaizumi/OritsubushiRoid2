@@ -1,5 +1,6 @@
 package com.wsf_lp.oritsubushi;
 
+import java.util.Date;
 import java.util.List;
 
 import android.content.Intent;
@@ -21,7 +22,7 @@ import com.wsf_lp.mapapp.data.OritsubushiNotificationIntent;
 import com.wsf_lp.mapapp.data.Station;
 
 public class StationFragment extends DBAccessFragmentBase {
-	
+
 	public static final String STATE_STATION = "station";
 
 	private TextView title;
@@ -36,13 +37,13 @@ public class StationFragment extends DBAccessFragmentBase {
 
 	private Station station;
 	public Station getStation() { return station; }
-	
+
 	public static void show(Fragment currentFragment, Station station) {
 		FragmentManager manager = ((FragmentActivity)currentFragment.getActivity()).getSupportFragmentManager();
 		StationFragment fragment = new StationFragment();
 		Bundle bundle = new Bundle();
 		bundle.putParcelable(STATE_STATION, station);
-		fragment.setArguments(bundle);		
+		fragment.setArguments(bundle);
 		manager.beginTransaction()
 			.setCustomAnimations(R.anim.slide_in_right, R.anim.none, R.anim.none, R.anim.slide_out_right)
 			.hide(currentFragment)
@@ -73,8 +74,7 @@ public class StationFragment extends DBAccessFragmentBase {
 		completionOnToday.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				station.setCompletionToday();
-				updateStation(station);
+				updateCompletionDate(Station.calcCompletionDateInt(new Date()));
 			}
 		});
 		editMemo.setOnClickListener(new OnClickListener() {
@@ -110,7 +110,7 @@ public class StationFragment extends DBAccessFragmentBase {
 		}
 		loadStation();
 	}
-	
+
 	@Override
 	public void onSaveInstanceState(Bundle outState) {
 		super.onSaveInstanceState(outState);
@@ -118,18 +118,20 @@ public class StationFragment extends DBAccessFragmentBase {
 	}
 
 	@Override
-	protected void onDatabaseConnected(boolean forceReload, List<Station> updatedStations) {
+	protected void onDatabaseConnected(boolean isEnabled, boolean forceReload, List<Station> updatedStations) {
 		//TODO:パラメータ使え
 		if(station == null/* || forceReload || updateStations.find(station)*/) {
 			station = (Station)getArguments().getParcelable(STATE_STATION);
-			callDatabase(Database.MethodName.RELOAD_STATION, station);
+			if(isEnabled) {
+				callDatabase(Database.MethodName.RELOAD_STATION, station);
+			}
 		} else {
 			loadStation();
 		}
 	}
 
 	@Override
-	public void onDatabaseDisconnected() {
+	public void onDatabaseDisconnected(boolean dummy) {
 		super.onDatabaseDisconnected();
 		editDate.setEnabled(false);
 		editMemo.setEnabled(false);
@@ -141,10 +143,8 @@ public class StationFragment extends DBAccessFragmentBase {
 	}
 
 	@Override
-	protected void onDatabaseUpdated() {
-		if(isDatabaseReady()) {
-			callDatabase(Database.MethodName.RELOAD_STATION, station);
-		}
+	protected void onDatabaseUpdated(boolean isFirst) {
+		callDatabase(Database.MethodName.RELOAD_STATION, station);
 	}
 
 	@Override
@@ -156,7 +156,7 @@ public class StationFragment extends DBAccessFragmentBase {
 	}
 
 	protected void loadStation() {
-		if(!station.isReadyToCreateSubtitle() && isDatabaseReady()) {
+		if(!station.isReadyToCreateSubtitle() && isDatabaseEnabled()) {
 			callDatabase(Database.MethodName.LOAD_LINES, station);
 		}
 		updateText();
@@ -178,19 +178,19 @@ public class StationFragment extends DBAccessFragmentBase {
 		editMemo.setEnabled(enableEdit);
 	}
 
-	public void updateStation(Station updatedStation) {
-		boolean updateDate = station.getCompletionDate() != updatedStation.getCompletionDate();
-		boolean updateMemo = !station.getMemo().equals(updatedStation.getMemo());
-		if(updateDate || updateMemo) {
-			station = updatedStation;
-			if(updateDate) {
-				callDatabase(Database.MethodName.UPDATE_COMPLETION, station);
-			}
-			if(updateMemo) {
-				callDatabase(Database.MethodName.UPDATE_MEMO, station);
-			}
+	public void updateCompletionDate(int newDate) {
+		if(station.getCompletionDate() != newDate) {
+			station.setCompletionDate(newDate);
+			callDatabase(Database.MethodName.UPDATE_COMPLETION, station);
+			updateText();
 		}
-		updateText();
+	}
 
+	public void updateMemo(String newMemo) {
+		if(!station.getMemo().equals(newMemo)) {
+			station.setMemo(newMemo);
+			callDatabase(Database.MethodName.UPDATE_MEMO, station);
+			updateText();
+		}
 	}
 }

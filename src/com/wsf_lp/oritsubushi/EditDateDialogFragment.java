@@ -52,7 +52,7 @@ public class EditDateDialogFragment extends DialogFragment
 	public static EditDateDialogFragment newInstance(StationFragment stationFragment) {
 		EditDateDialogFragment fragment = new EditDateDialogFragment();
 		Bundle bundle = new Bundle();
-		bundle.putParcelable(STATE_STATION, stationFragment.getStation());
+		bundle.putParcelable(STATE_STATION, new Station(stationFragment.getStation()));
 		fragment.setArguments(bundle);
 		fragment.setTargetFragment(stationFragment, 0);
 		return fragment;
@@ -87,7 +87,7 @@ public class EditDateDialogFragment extends DialogFragment
 		day0Button.setOnCheckedChangeListener(this);
 		completedCheck.setOnCheckedChangeListener(this);
 		return (new AlertDialog.Builder(activity))
-			.setTitle(R.string.verbose_edit_comp_date_title_loading)
+			.setTitle(R.string.verbose_edit_comp_date_title)
 			.setView(containerView)
 			.setPositiveButton(R.string.ok, this)
 			.setNegativeButton(R.string.cancel, this)
@@ -167,7 +167,7 @@ public class EditDateDialogFragment extends DialogFragment
 		switch(which) {
 		case DialogInterface.BUTTON_POSITIVE:
 			station.setCompletionDate(completedCheck.isChecked() ? station.getCompletionDate() : Station.INCOMPLETE);
-			((StationFragment)getTargetFragment()).updateStation(station);
+			((StationFragment)getTargetFragment()).updateCompletionDate(station.getCompletionDate());
 			dialog.cancel();
 			break;
 		case DialogInterface.BUTTON_NEGATIVE:
