@@ -20,6 +20,12 @@ public class OritsubushiPreferenceFragment extends PreferenceFragment implements
 	protected int getLayoutId() {
 		return R.layout.preference_list_content;
 	}
+	
+	@Override
+	public void onStart() {
+		super.onStart();
+		MenuableFragmentBase.notifyVisible(this);
+	}
 
 	@Override
 	public void onResume() {

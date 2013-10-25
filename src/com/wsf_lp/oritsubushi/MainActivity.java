@@ -18,6 +18,7 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -25,8 +26,7 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 
 public class MainActivity extends ActionBarActivity implements
-		OnPreferenceAttachedListener, AdapterView.OnItemClickListener,
-		FragmentManager.OnBackStackChangedListener {
+		OnPreferenceAttachedListener, AdapterView.OnItemClickListener {
 	public static final int CONTENT_VIEW_ID = R.id.content_frame;
 
 	private DrawerLayout mDrawerLayout;
@@ -80,7 +80,7 @@ public class MainActivity extends ActionBarActivity implements
 
 			@Override
 			public void onDrawerClosed(View view) {
-				execFragment(0);
+				execFragment(0, false);
 				supportInvalidateOptionsMenu();
 			}
 		};
@@ -88,14 +88,11 @@ public class MainActivity extends ActionBarActivity implements
 
 		// DrawerList
 		mDrawerList = (ListView) findViewById(R.id.left_drawer);
-		mDrawerList.setAdapter(FragmentEnum.getMenuAdapter(this,
-				R.layout.drawable_menu));
+		mDrawerList.setAdapter(FragmentEnum.getInstance().getMenuAdapter(this, R.layout.drawable_menu));
 		mDrawerList.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
 		mDrawerList.setItemChecked(recentFragmentPosition, true);
 		mDrawerList.setOnItemClickListener(this);
-		execFragment(0);
-
-		getSupportFragmentManager().addOnBackStackChangedListener(this);
+		execFragment(0, true);
 	}
 
 	@Override
@@ -117,7 +114,7 @@ public class MainActivity extends ActionBarActivity implements
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		FragmentEnum.addActionItems(menu);
+		FragmentEnum.getInstance().addActionItems(menu);
 		return super.onCreateOptionsMenu(menu);
 	}
 
@@ -125,9 +122,10 @@ public class MainActivity extends ActionBarActivity implements
 	public boolean onPrepareOptionsMenu(Menu menu) {
 		// If the nav drawer is open, hide action items related to the content
 		// view
-		FragmentEnum.enableActionItems(menu, mDrawerLayout
-				.isDrawerOpen(mDrawerList) ? AdapterView.INVALID_POSITION
-				: mDrawerList.getCheckedItemPosition());
+		FragmentEnum.getInstance().enableActionItems(
+				menu,
+				mDrawerLayout.isDrawerOpen(mDrawerList) ? AdapterView.INVALID_POSITION : mDrawerList.getCheckedItemPosition())
+		;
 		return super.onPrepareOptionsMenu(menu);
 	}
 
@@ -135,22 +133,22 @@ public class MainActivity extends ActionBarActivity implements
     public boolean onOptionsItemSelected(MenuItem item) {
         if (mDrawerToggle.onOptionsItemSelected(item)) {
             return true;
-        } else if(execFragment(item.getItemId())) {
-    		supportInvalidateOptionsMenu();
+        } else if(execFragment(item.getItemId(), false)) {
         	return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
-	private boolean execFragment(int id) {
+	private boolean execFragment(int id, boolean isFirst) {
+		FragmentEnum fragmentEnum = FragmentEnum.getInstance();
 		Class<? extends Fragment> fragmentClass;
 		int position;
 		if (id != 0) {
-			fragmentClass = FragmentEnum.getFragmentClassById(id);
-			position = FragmentEnum.getMenuFragmentPosition(fragmentClass);
+			fragmentClass = fragmentEnum.getFragmentClassById(id);
+			position = fragmentEnum.getMenuFragmentPosition(fragmentClass);
 		} else {
 			position = mDrawerList.getCheckedItemPosition();
-			fragmentClass = FragmentEnum.getFragmentClassByMenuPosition(position);
+			fragmentClass = fragmentEnum.getFragmentClassByMenuPosition(position);
 		}
 		if (fragmentClass != null) {
 			String tag = fragmentClass.getCanonicalName();
@@ -166,12 +164,27 @@ public class MainActivity extends ActionBarActivity implements
 			FragmentTransaction transaction = fragmentManager
 					.beginTransaction();
 			transaction.replace(CONTENT_VIEW_ID, fragment, tag);
-			transaction.addToBackStack(null);
+			if(!isFirst) {
+				transaction.addToBackStack(null);
+			}
 			transaction.commit();
-			mDrawerList.setItemChecked(position, true);
 			return true;
 		}
 		return false;
+	}
+
+	public void onFragmentStart(Fragment fragment) {
+		FragmentEnum fragmentEnum = FragmentEnum.getInstance();
+		int position = fragmentEnum.getMenuFragmentPosition(fragment.getClass());
+		if(position >= 0) {
+			if(mDrawerList.getSelectedItemPosition() != position) {
+				mDrawerList.setItemChecked(position, true);
+			}
+			if(fragmentEnum.isActionPosition(position)) {
+				PreferenceManager.getDefaultSharedPreferences(this).edit().putInt(PreferenceKey.RECENT_FRAGMENT_POSITION, position).commit();
+			}
+			supportInvalidateOptionsMenu();
+		}
 	}
 
 	@Override
@@ -189,12 +202,5 @@ public class MainActivity extends ActionBarActivity implements
 		;
 	}
 
-	@Override
-	public void onBackStackChanged() {
-		int position = FragmentEnum.getCurrentFragmentPosition(getSupportFragmentManager());
-		if(position >= 0) {
-			PreferenceManager.getDefaultSharedPreferences(this).edit().putInt(PreferenceKey.RECENT_FRAGMENT_POSITION, position).commit();
-		}
-	}
-
+	
 }

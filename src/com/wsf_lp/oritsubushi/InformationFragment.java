@@ -18,7 +18,7 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
 
-public class InformationFragment extends Fragment {
+public class InformationFragment extends MenuableFragmentBase {
 
 	private static class MyWebViewClient extends WebViewClient {
 		private final WeakReference<Fragment> mFragment;

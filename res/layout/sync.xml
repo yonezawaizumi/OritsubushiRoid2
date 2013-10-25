@@ -1,9 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:wsf="http://schemas.android.com/apk/res/com.wsf_lp.oritsubushi"
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView  xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:wsf="http://schemas.android.com/apk/res/com.wsf_lp.oritsubushi"
+  android:id="@+id/ScrollView"
+  android:layout_height="fill_parent"
+  android:layout_width="fill_parent" >
+
+<FrameLayout 
     android:id="@+id/panel_container"
     android:layout_width="match_parent"
-    android:layout_height="match_parent" >
+    android:layout_height="wrap_content" >
 
     <WebView
         android:id="@+id/web_view"
@@ -152,3 +157,4 @@
     </FrameLayout>
 
 </FrameLayout>
+</ScrollView>

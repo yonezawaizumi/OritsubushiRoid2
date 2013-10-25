@@ -9,10 +9,10 @@ import com.wsf_lp.mapapp.data.OritsubushiBroadcastReceiver;
 import com.wsf_lp.mapapp.data.OritsubushiNotificationIntent;
 import com.wsf_lp.mapapp.data.Station;
 
+import android.content.IntentFilter;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 
-public abstract class DBAccessFragmentBase extends Fragment
+public abstract class DBAccessFragmentBase extends MenuableFragmentBase
 	implements DatabaseResultReceiver,
 		DatabaseServiceConnector.Listener,
 		OritsubushiBroadcastReceiver.UpdateListener {
@@ -32,13 +32,22 @@ public abstract class DBAccessFragmentBase extends Fragment
 	protected DatabaseService getDatabaseService() { return mDatabaseService; }
 	public boolean isDatabaseEnabled() { return mIsEnabled; }
 
+	protected long callDatabase(String methodName, Object... args) {
+		return isDatabaseEnabled() ? getDatabaseService().callDatabase(this, methodName, args) : Long.MAX_VALUE;
+	}
+
+	//must override
 	protected abstract void onDatabaseConnected(boolean isEnabled, boolean forceReload, List<Station> updatedStations);
 	protected abstract void onQueryFinished(String methodName, Object result, long sequence);
 	protected abstract void onDatabaseUpdated(boolean isFirst);
 	protected abstract void onStationUpdated(Station station);
 
-	protected long callDatabase(String methodName, Object... args) {
-		return isDatabaseEnabled() ? getDatabaseService().callDatabase(this, methodName, args) : Long.MAX_VALUE;
+	//overridable
+	protected IntentFilter getIntentFilter() {
+		return OritsubushiNotificationIntent.getIntentFilter();
+	}
+	//overridable
+	public void onDatabaseDisconnected(boolean dummy) {
 	}
 
 	@Override
@@ -49,7 +58,7 @@ public abstract class DBAccessFragmentBase extends Fragment
 		mRecentDBNotifySequence = savedInstanceState != null ? savedInstanceState.getLong(STATE_RECENT_DB_NOTIFY) : 0;
 
         mBroadcastReceiver = new OritsubushiBroadcastReceiver(this);
-        mBroadcastReceiver.registerTo(getActivity(), OritsubushiNotificationIntent.getIntentFilter());
+        mBroadcastReceiver.registerTo(getActivity(), getIntentFilter());
         mConnector = new DatabaseServiceConnector();
         mConnector.connect(getActivity(), this);
 
@@ -85,9 +94,6 @@ public abstract class DBAccessFragmentBase extends Fragment
 		mDatabaseService = null;
 		mIsEnabled = false;
 		onDatabaseDisconnected(false);
-	}
-
-	public void onDatabaseDisconnected(boolean dummy) {
 	}
 
 	@Override

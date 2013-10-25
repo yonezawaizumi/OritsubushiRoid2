@@ -2,7 +2,6 @@ package com.wsf_lp.oritsubushi;
 
 import android.content.Context;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.support.v4.view.MenuItemCompat;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -17,6 +16,9 @@ import android.widget.TextView;
 
 
 public class FragmentEnum {
+	private static final FragmentEnum instance = new FragmentEnum();
+
+	public static FragmentEnum getInstance() { return instance; }
 
 	private static class MenuProperty {
 		public final Class<? extends Fragment> fragmentClass;
@@ -33,7 +35,7 @@ public class FragmentEnum {
 		}
 	}
 
-	private static final MenuProperty[] MENUS = new MenuProperty[] {
+	private final MenuProperty[] MENUS = new MenuProperty[] {
 		new MenuProperty(MapFragment.class, R.id.main, R.drawable.map, R.string.map, MenuItemCompat.SHOW_AS_ACTION_NEVER),
 		new MenuProperty(OperatorTypeGroupFragment.class, R.id.operator_type, R.drawable.operator_type, R.string.operator_type, MenuItemCompat.SHOW_AS_ACTION_NEVER),
 		new MenuProperty(PrefContainerFragment.class, R.id.pref, R.drawable.pref, R.string.pref, MenuItemCompat.SHOW_AS_ACTION_NEVER),
@@ -44,7 +46,7 @@ public class FragmentEnum {
 		new MenuProperty(OritsubushiPreferenceFragment.class, R.id.preferences, R.drawable.preferences, R.string.preferences, MenuItemCompat.SHOW_AS_ACTION_IF_ROOM),
 	};
 
-	private static class Adapter extends ArrayAdapter<MenuProperty> {
+	private class Adapter extends ArrayAdapter<MenuProperty> {
 		LayoutInflater inflater;
 		int resourceId;
 		public Adapter(Context context, int resourceId) {
@@ -69,11 +71,11 @@ public class FragmentEnum {
 		}
 	}
 
-	public static BaseAdapter getMenuAdapter(Context context, int resourceId) {
+	public BaseAdapter getMenuAdapter(Context context, int resourceId) {
 		return new Adapter(context, resourceId);
 	}
 
-	public static int getMenuFragmentPosition(Class<? extends Fragment> fragmentClass) {
+	public int getMenuFragmentPosition(Class<? extends Fragment> fragmentClass) {
 		for(int position = MENUS.length - 1; position >= 0; --position) {
 			if(fragmentClass == MENUS[position].fragmentClass) {
 				return position;
@@ -82,7 +84,7 @@ public class FragmentEnum {
 		return -1;
 	}
 
-	public static Class<? extends Fragment> getFragmentClassByMenuPosition(int position) {
+	public Class<? extends Fragment> getFragmentClassByMenuPosition(int position) {
 		if(position < 0 || MENUS.length <= position) {
 			throw new IllegalArgumentException();
 		} else {
@@ -90,7 +92,7 @@ public class FragmentEnum {
 		}
 	}
 
-	public static Class<? extends Fragment> getFragmentClassById(int id) {
+	public Class<? extends Fragment> getFragmentClassById(int id) {
 		for(MenuProperty property : MENUS) {
 			if(property.id == id) {
 				return property.fragmentClass;
@@ -99,7 +101,7 @@ public class FragmentEnum {
 		throw new IllegalArgumentException("bad menu id");
 	}
 
-	public static void addActionItems(Menu menu) {
+	public void addActionItems(Menu menu) {
 		for(MenuProperty property : MENUS) {
 			if(property.action == MenuItemCompat.SHOW_AS_ACTION_NEVER) {
 				continue;
@@ -110,7 +112,7 @@ public class FragmentEnum {
 		}
 	}
 
-	public static void enableActionItems(Menu menu, int position) {
+	public void enableActionItems(Menu menu, int position) {
 		for(int index = MENUS.length - 1; index >= 0; --index) {
 			if(MENUS[index].action == MenuItemCompat.SHOW_AS_ACTION_NEVER) {
 				continue;
@@ -119,22 +121,8 @@ public class FragmentEnum {
 		}
 	}
 
-	public static int getCurrentFragmentPosition(FragmentManager manager) {
-		for(int position = MENUS.length - 1; position >= 0; --position) {
-			MenuProperty property = MENUS[position];
-			if(property.action != MenuItemCompat.SHOW_AS_ACTION_NEVER) {
-				continue;
-			}
-			Fragment fragment = manager.findFragmentByTag(property.fragmentClass.getCanonicalName());
-			if(fragment == null) {
-				continue;
-			}
-			View container = fragment.getView();
-			if(container != null && container.isShown()) {
-				return position;
-			}
-		}
-		return -1;
+	public boolean isActionPosition(int position) {
+		return 0 <= position && position < MENUS.length && MENUS[position].action != MenuItemCompat.SHOW_AS_ACTION_NEVER;
 	}
 
 }
