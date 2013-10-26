@@ -43,20 +43,17 @@ public class SyncFragment extends DBAccessFragmentBase
 	private Button mStartSyncButton;
 	private WebView mWebView;
 	private SyncWebViewClient mWebViewClient;
-	private String mCurrentContent;
-	private String mCurrentURL;
 
-	private boolean mIsActive;
-//	private boolean mIsInitializing;
 	private String mUserName;
 	private Date mRecentTime;
 
-	private static final int STATE_NOT_AUTHED = 0;
-	private static final int STATE_AUTHED = 1;
-	private static final int STATE_BEGIN_LOGIN = 2;
-	private static final int STATE_BEGIN_LOGIN_TWITTER = 3;
-	private static final int STATE_BEGIN_LOGOUT = 4;
-	private static final int STATE_REQUEST_USER = 5;
+	private static final int STATE_NOT_INITIALIZED = 0;
+	private static final int STATE_NOT_AUTHED = 1;
+	private static final int STATE_AUTHED = 2;
+	private static final int STATE_BEGIN_LOGIN = 3;
+	private static final int STATE_BEGIN_LOGIN_TWITTER = 4;
+	private static final int STATE_BEGIN_LOGOUT = 5;
+	private static final int STATE_REQUEST_USER = 6;
 
 	private int mAuthState;
 
@@ -81,13 +78,14 @@ public class SyncFragment extends DBAccessFragmentBase
 		CookieSyncManager.createInstance(getActivity().getApplicationContext());
 		CookieSyncManager.getInstance().startSync();
 
+		mAuthState = STATE_NOT_INITIALIZED;
 		requestUserName();
 	}
-	
+
 	@SuppressLint("SetJavaScriptEnabled")
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		
+
 		View view = inflater.inflate(R.layout.sync, container, false);
 
 		mProgress = view.findViewById(R.id.progress);
@@ -117,11 +115,12 @@ public class SyncFragment extends DBAccessFragmentBase
 
 		return view;
 	}
-	
+
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
-		
+		mWebView.restoreState(savedInstanceState);
+
         startProgress(true);
         voidAllButtons();
 	}
@@ -129,20 +128,18 @@ public class SyncFragment extends DBAccessFragmentBase
 	@Override
 	public void onStart() {
 		super.onStart();
-		
+
 		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
 		final long time = preferences.getLong(PreferenceKey.SYNC_RECENT_DATE, -1);
 		mRecentTime = time >= 0 ? new Date(time) : null;
-		mIsActive = true;
 
-		if(mUserName != null) {
-			//mIsInitializing = true;
-			//requestUserName();
+		if(mAuthState == STATE_NOT_INITIALIZED) {
+			requestUserName();
 		} else {
 			updateStatuses();
 		}
 	}
-	
+
 	@Override
 	public void onResume() {
 		super.onResume();
@@ -156,11 +153,11 @@ public class SyncFragment extends DBAccessFragmentBase
 	}
 
 	@Override
-	public void onStop() {
-		mIsActive = false;
-		super.onStop();
+	public void onSaveInstanceState(Bundle outState) {
+		super.onSaveInstanceState(outState);
+		mWebView.saveState(outState);
 	}
-	
+
 	@Override
 	public void onDestroyView() {
 		super.onDestroyView();
@@ -173,13 +170,13 @@ public class SyncFragment extends DBAccessFragmentBase
 		mStartSyncButton = null;
 		mWebView = null;
 	}
-	
+
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
 		CookieSyncManager.getInstance().stopSync();
 	}
-	
+
 	@Override
 	public boolean onBackPressed(MainActivity activity) {
 		if(mContainer.getVisibility() != View.VISIBLE) {
@@ -193,7 +190,7 @@ public class SyncFragment extends DBAccessFragmentBase
 			return false;
 		}
 	}
-	
+
 	private void requestUserName() {
 		switch(mAuthState) {
 		case STATE_BEGIN_LOGIN:
@@ -201,7 +198,9 @@ public class SyncFragment extends DBAccessFragmentBase
 		case STATE_REQUEST_USER:
 			return;
 		}
+		mUserName = null;
 		mAuthState = STATE_REQUEST_USER;
+		updateStatuses();
 		startProgress(true);
 		Context context = getActivity().getApplicationContext();
 		HttpClientForSync client = new HttpClientForSync(context);
@@ -210,7 +209,6 @@ public class SyncFragment extends DBAccessFragmentBase
 
 	public void onGotUserName(String userName) {
 		mAuthState = STATE_AUTHED;
-		//mIsInitializing = false;
 		if(!userName.equals(mUserName)) {
 			mUserName = userName;
 			updateStatuses();
@@ -218,18 +216,24 @@ public class SyncFragment extends DBAccessFragmentBase
 	}
 
 	public void onFailureUserName(boolean networkError) {
-		mAuthState = STATE_NOT_AUTHED;
 		if(networkError) {
-			Toast.makeText(getActivity(), R.string.sync_network_error, Toast.LENGTH_LONG).show();
-			updateStatuses();
+			mAuthState = STATE_NOT_INITIALIZED;
+			if(mContainer != null) {
+				Toast.makeText(getActivity(), R.string.sync_network_error, Toast.LENGTH_LONG).show();
+				updateStatuses();
+			}
 		} else {
+			mAuthState = STATE_NOT_AUTHED;
 			logout();
 		}
 	}
 
 	private void updateStatuses() {
+		if(mContainer == null) {
+			return;
+		}
 		final boolean isSyncing = isDatabaseEnabled() && getDatabaseService().isSyncing();
-		startProgress(!isSyncing/* && mIsInitializing*/);
+		startProgress(isSyncing || !isDatabaseEnabled());
 		if(mRecentTime == null) {
 			mRecentDate.setText(R.string.sync_date_none);
 			mClearRecentDateButton.setEnabled(false);
@@ -243,22 +247,24 @@ public class SyncFragment extends DBAccessFragmentBase
 			mClearRecentDateButton.setEnabled(!isSyncing/* && !mIsInitializing*/);
 		}
 		mStartSyncButton.setText(isSyncing ? R.string.sync_doing : R.string.sync_button_start);
-		if(mUserName != null && mUserName.length() > 0) {
-			mLoginName.setText(mUserName);
-			mLoginButton.setText(R.string.sync_button_logout);
-			mStartSyncButton.setEnabled(!isSyncing /*&& !mIsInitializing*/ && isDatabaseEnabled());
-		} else {
-			if(mUserName != null) {
-				mLoginName.setText(R.string.sync_not_login);
-			}
+		if(mUserName == null) {
+			mLoginName.setText(R.string.sync_unknown_login);
+			mLoginButton.setText(R.string.sync_button_retry_login);
+			mStartSyncButton.setEnabled(false);
+		} else if(mUserName.length() == 0) {
+			mLoginName.setText(R.string.sync_not_login);
 			mLoginButton.setText(R.string.sync_button_login);
 			mStartSyncButton.setEnabled(false);
+		} else {
+			mLoginName.setText(mUserName);
+			mLoginButton.setText(R.string.sync_button_logout);
+			mStartSyncButton.setEnabled(!isSyncing && isDatabaseEnabled());
 		}
-		mLoginButton.setEnabled(!isSyncing /*&& !mIsInitializing*/);
+		mLoginButton.setEnabled(!isSyncing);
 	}
 
 	private void voidAllButtons() {
-		if(mIsActive) {
+		if(mContainer != null) {
 			mClearRecentDateButton.setEnabled(false);
 			mLoginButton.setEnabled(false);
 			mStartSyncButton.setEnabled(false);
@@ -284,13 +290,13 @@ public class SyncFragment extends DBAccessFragmentBase
 	}
 
 	private void startProgress(boolean start) {
-		if(mIsActive) {
+		if(mProgress != null) {
 			mProgress.setVisibility(start ? View.VISIBLE : View.INVISIBLE);
 		}
 	}
 
 	private void setWebViewMode(boolean set) {
-		if(mIsActive) {
+		if(mContainer != null) {
 			mWebView.setVisibility(set ? View.VISIBLE : View.INVISIBLE);
 			mContainer.setVisibility(set ? View.INVISIBLE : View.VISIBLE);
 		}
@@ -369,7 +375,7 @@ public class SyncFragment extends DBAccessFragmentBase
 
 	@Override
 	protected void onDatabaseUpdated(boolean isFirst) {
-		
+
 	}
 
 	@Override
@@ -377,7 +383,7 @@ public class SyncFragment extends DBAccessFragmentBase
 
 	@Override
 	protected void onDatabaseConnected(boolean isEnabled, boolean forceReload, List<Station> updatedStations) {
-		
+
 	}
 
 	private static class SyncWebViewClient extends WebViewClient {
@@ -390,21 +396,21 @@ public class SyncFragment extends DBAccessFragmentBase
 		}
 		@Override
 		public void onPageStarted(WebView webView, String url, Bitmap favicon) {
-			SyncFragment self = mFragment.get();
-			if(self == null) {
+			SyncFragment fragment = mFragment.get();
+			if(fragment == null) {
 				webView.stopLoading();
 				return;
 			}
-			self.setWebViewMode(false);
-			switch(self.mAuthState) {
+			fragment.setWebViewMode(false);
+			switch(fragment.mAuthState) {
 			case STATE_BEGIN_LOGIN:
 			case STATE_BEGIN_LOGIN_TWITTER:
 				if(url.contains("https://twitter.com/")) {
-					self.mAuthState = STATE_BEGIN_LOGIN_TWITTER;
+					fragment.mAuthState = STATE_BEGIN_LOGIN_TWITTER;
 				} else {
-					self.mAuthState = STATE_BEGIN_LOGIN;
+					fragment.mAuthState = STATE_BEGIN_LOGIN;
 				}
-				self.startProgress(true);
+				fragment.startProgress(true);
 				break;
 			case STATE_BEGIN_LOGOUT:
 				break;
@@ -503,7 +509,7 @@ public class SyncFragment extends DBAccessFragmentBase
 		} else if (code == R.string.sync_login_failed) {
 			logout();
 		}
-		if(mIsActive) {
+		if(mContainer != null) {
 			Context context = getActivity();
 			Toast.makeText(context, code, Toast.LENGTH_LONG).show();
 			updateStatuses();

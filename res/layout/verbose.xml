@@ -3,7 +3,8 @@
     xmlns:wsf="http://schemas.android.com/apk/res/com.wsf_lp.oritsubushi"
   android:id="@+id/ScrollView"
   android:layout_height="fill_parent"
-  android:layout_width="fill_parent" >
+  android:layout_width="fill_parent"
+  android:fillViewport="true" >
 
   <LinearLayout
       android:layout_width="match_parent"

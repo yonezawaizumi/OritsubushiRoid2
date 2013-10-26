@@ -69,6 +69,7 @@
     <string name="sync_button_start">同期を開始する</string>
     <string name="sync_doing">同期を実行中…</string>
     <string name="sync_button_login">ログイン</string>
+    <string name="sync_button_retry_login">再ロード</string>
     <string name="sync_button_logout">ログアウト</string>
     <string name="sync_busy">同期は既に実行中です</string>
     <string name="sync_not_ready">データベース初期化中です</string>
@@ -87,6 +88,7 @@
     <string name="sync_login_user_name">ログインユーザ名</string>
     <string name="sync_test_auth">確認中…</string>
     <string name="sync_not_login">ログインしていません</string>
+    <string name="sync_unknown_login">(状態不明)</string>
     <string name="sync_do">同期の実行</string>
     <string name="sync_abort_message">同期を中止しますか？</string>
     <string name="sync_abort_ok">中止する</string>
