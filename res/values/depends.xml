@@ -14,4 +14,6 @@
     <string name="twitter_oauth_url_1_1">https://twitter.com/oauth/authorize</string>
     <string name="host_domain">oritsubushi.net</string>
     <string name="update_date_header">X-Oritsubushi-Updated</string>
+    <string name="heso_latitude">35.002076</string>
+    <string name="heso_longitude">134.997618</string>
 </resources>

@@ -122,7 +122,7 @@ public class FragmentEnum {
 	}
 
 	public boolean isActionPosition(int position) {
-		return 0 <= position && position < MENUS.length && MENUS[position].action != MenuItemCompat.SHOW_AS_ACTION_NEVER;
+		return 0 <= position && position < MENUS.length && MENUS[position].action == MenuItemCompat.SHOW_AS_ACTION_NEVER;
 	}
 
 }

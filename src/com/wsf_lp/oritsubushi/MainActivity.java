@@ -18,7 +18,6 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -32,6 +31,7 @@ public class MainActivity extends ActionBarActivity implements
 	private DrawerLayout mDrawerLayout;
 	private ListView mDrawerList;
 	private ActionBarDrawerToggle mDrawerToggle;
+	private boolean mDrawerMenuIsSelected;
 
 	private WeakHashMap<OnBackPressedListener, String> mOnBackPressedListeners = new WeakHashMap<OnBackPressedListener, String>();
 
@@ -71,8 +71,7 @@ public class MainActivity extends ActionBarActivity implements
 				GravityCompat.START);
 
 		// DrawerList button
-		mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout,
-				R.drawable.ic_drawer, R.string.yomi, R.string.yomi) {
+		mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.drawable.ic_drawer, R.string.yomi, R.string.yomi) {
 			@Override
 			public void onDrawerOpened(View view) {
 				supportInvalidateOptionsMenu();
@@ -80,8 +79,11 @@ public class MainActivity extends ActionBarActivity implements
 
 			@Override
 			public void onDrawerClosed(View view) {
-				execFragment(0, false);
 				supportInvalidateOptionsMenu();
+				if(mDrawerMenuIsSelected) {
+					mDrawerMenuIsSelected = false;
+					execFragment(false);
+				}
 			}
 		};
 		mDrawerLayout.setDrawerListener(mDrawerToggle);
@@ -92,11 +94,12 @@ public class MainActivity extends ActionBarActivity implements
 		mDrawerList.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
 		mDrawerList.setItemChecked(recentFragmentPosition, true);
 		mDrawerList.setOnItemClickListener(this);
-		execFragment(0, true);
+		execFragment(true);
 	}
 
 	@Override
 	public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
+		mDrawerMenuIsSelected = true;
 		mDrawerLayout.closeDrawer(mDrawerList);
 	}
 
@@ -133,23 +136,15 @@ public class MainActivity extends ActionBarActivity implements
     public boolean onOptionsItemSelected(MenuItem item) {
         if (mDrawerToggle.onOptionsItemSelected(item)) {
             return true;
-        } else if(execFragment(item.getItemId(), false)) {
-        	return true;
+        } else if(item.getItemId() == android.R.id.home){
+        	getSupportFragmentManager().popBackStack();
         }
         return super.onOptionsItemSelected(item);
     }
 
-	private boolean execFragment(int id, boolean isFirst) {
-		FragmentEnum fragmentEnum = FragmentEnum.getInstance();
-		Class<? extends Fragment> fragmentClass;
-		int position;
-		if (id != 0) {
-			fragmentClass = fragmentEnum.getFragmentClassById(id);
-			position = fragmentEnum.getMenuFragmentPosition(fragmentClass);
-		} else {
-			position = mDrawerList.getCheckedItemPosition();
-			fragmentClass = fragmentEnum.getFragmentClassByMenuPosition(position);
-		}
+	private boolean execFragment(boolean isFirst) {
+		int position = mDrawerList.getCheckedItemPosition();
+		Class<? extends Fragment> fragmentClass = FragmentEnum.getInstance().getFragmentClassByMenuPosition(position);
 		if (fragmentClass != null) {
 			String tag = fragmentClass.getCanonicalName();
 			FragmentManager fragmentManager = getSupportFragmentManager();
@@ -160,6 +155,8 @@ public class MainActivity extends ActionBarActivity implements
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
+			} else if(fragment.getView() != null && fragment.getView().isShown()) {
+				return true;
 			}
 			FragmentTransaction transaction = fragmentManager
 					.beginTransaction();
@@ -185,6 +182,10 @@ public class MainActivity extends ActionBarActivity implements
 			}
 			supportInvalidateOptionsMenu();
 		}
+	}
+	
+	public void enableUpButton(boolean enabled) {
+		mDrawerToggle.setDrawerIndicatorEnabled(!enabled);
 	}
 
 	@Override

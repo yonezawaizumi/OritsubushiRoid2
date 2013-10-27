@@ -9,6 +9,7 @@ import android.annotation.SuppressLint;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -29,6 +30,7 @@ import android.widget.Toast;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.wsf_lp.mapapp.data.HttpClientForSync;
 import com.wsf_lp.mapapp.data.OritsubushiBroadcastReceiver;
+import com.wsf_lp.mapapp.data.OritsubushiNotificationIntent;
 import com.wsf_lp.mapapp.data.Station;
 
 public class SyncFragment extends DBAccessFragmentBase
@@ -62,6 +64,11 @@ public class SyncFragment extends DBAccessFragmentBase
 	private static String logoutUrl;
 	private static String twitterOAuthUrl;
 	private static String twitterOAuthUrl1_1;
+	
+	@Override
+	protected IntentFilter getIntentFilter() {
+		return OritsubushiNotificationIntent.getSyncFinishIntentFilter();
+	}
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -249,7 +256,7 @@ public class SyncFragment extends DBAccessFragmentBase
 		mStartSyncButton.setText(isSyncing ? R.string.sync_doing : R.string.sync_button_start);
 		if(mUserName == null) {
 			mLoginName.setText(R.string.sync_unknown_login);
-			mLoginButton.setText(R.string.sync_button_retry_login);
+			mLoginButton.setText(mAuthState == STATE_NOT_INITIALIZED ? R.string.sync_button_retry_login : R.string.sync_button_login_initializing);
 			mStartSyncButton.setEnabled(false);
 		} else if(mUserName.length() == 0) {
 			mLoginName.setText(R.string.sync_not_login);
@@ -333,7 +340,9 @@ public class SyncFragment extends DBAccessFragmentBase
 			onStartSync();
 		} else if(v == mLoginButton) {
 			voidAllButtons();
-			if(mUserName != null && mUserName.length() > 0) {
+			if(mAuthState == STATE_NOT_INITIALIZED) {
+				requestUserName();
+			} else if(mUserName != null && mUserName.length() > 0) {
 				logout();
 			} else {
 				login();
@@ -375,7 +384,9 @@ public class SyncFragment extends DBAccessFragmentBase
 
 	@Override
 	protected void onDatabaseUpdated(boolean isFirst) {
-
+		if(isFirst) {
+			updateStatuses();
+		}
 	}
 
 	@Override

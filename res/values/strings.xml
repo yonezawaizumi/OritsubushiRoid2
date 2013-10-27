@@ -68,6 +68,7 @@
     <string name="sync_button_clear_recent_date">クリア</string>
     <string name="sync_button_start">同期を開始する</string>
     <string name="sync_doing">同期を実行中…</string>
+    <string name="sync_button_login_initializing">−−−−</string>
     <string name="sync_button_login">ログイン</string>
     <string name="sync_button_retry_login">再ロード</string>
     <string name="sync_button_logout">ログアウト</string>

@@ -194,6 +194,7 @@ public abstract class GroupFragmentBase extends DBAccessFragmentBase implements 
 	@Override
 	public void onDestroyView() {
 		super.onDestroyView();
+		mFlipper = null;
 		for(Panel panel : mPanels) {
 			panel.mTitle = null;
 			panel.mDescription = null;
@@ -254,10 +255,12 @@ public abstract class GroupFragmentBase extends DBAccessFragmentBase implements 
 	protected abstract int updateStation(Station station);
 
 	protected void reset() {
-		mFlipper.setInAnimation(null);
-		mFlipper.setOutAnimation(null);
 		mCurrentPanelIndex = 0;
-		mFlipper.setDisplayedChild(0);
+		if(mFlipper != null) {
+			mFlipper.setInAnimation(null);
+			mFlipper.setOutAnimation(null);
+			mFlipper.setDisplayedChild(0);
+		}
 		loadGroup(0);
 	}
 
@@ -273,8 +276,8 @@ public abstract class GroupFragmentBase extends DBAccessFragmentBase implements 
 	}
 
 	protected void updateAllTexts() {
-		int count = getCurrentPanelIndex() + 1;
-		for(int index = 0; index < count; ++index) {
+		int count = getCurrentPanelIndex();
+		for(int index = 0; index <= count; ++index) {
 			updateText(index);
 		}
 	}
@@ -317,7 +320,7 @@ public abstract class GroupFragmentBase extends DBAccessFragmentBase implements 
 				break;
 			}
 		}
-		if(updateIndex >= 0) {
+		if(mFlipper != null && updateIndex >= 0) {
 			Panel panel = mPanels[updateIndex];
 			if(panel != null) {
 				panel.mWrapper.setVisibility(View.GONE);
@@ -345,18 +348,8 @@ public abstract class GroupFragmentBase extends DBAccessFragmentBase implements 
 	@Override
 	protected void onStationUpdated(Station station) {
 		int panelIndex = updateStation(station);
-		if(panelIndex >= 0) {
+		if(panelIndex >= 0 && mFlipper != null) {
 			mPanels[panelIndex].mCellAdapter.notifyDataSetChanged();
 		}
 	}
-
-/*	public void updateAllTexts() {
-		FragmentManager manager = getChildFragmentManager();
-		for(Class<? extends PanelFragment> fragmentClass : getFragmentClasses()) {
-			PanelFragment fragment = (PanelFragment)manager.findFragmentByTag(fragmentClass.getCanonicalName());
-			if(fragment != null) {
-				fragment.updateHeaderText();
-			}
-		}
-	}*/
 }
