@@ -30,7 +30,8 @@
             android:layout_height="match_parent"
             android:gravity="bottom"
             android:orientation="vertical"
-            android:paddingRight="48dip" >
+            android:paddingBottom="12dp"
+            android:paddingRight="56dp" >
 
             <RadioGroup
                 android:id="@+id/radio_map_visibility"
@@ -42,21 +43,19 @@
 
                 <RadioButton
                     android:id="@+id/mapbutton_all"
-                    style="@drawable/segmented_left"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:background="@drawable/segmented_left"
                     android:button="@null"
-                    android:checked="true"
                     android:gravity="center_vertical|center_horizontal"
                     android:height="32dip"
                     android:text="@string/mapbutton_all"
+                    android:textColor="@color/segmented_text"
                     android:textSize="13sp"
                     android:width="48dip" />
 
                 <RadioButton
                     android:id="@+id/mapbutton_comp"
-                    style="@drawable/segmented_center"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:background="@drawable/segmented_center"
@@ -64,6 +63,7 @@
                     android:gravity="center_vertical|center_horizontal"
                     android:height="32dip"
                     android:text="@string/mapbutton_comp"
+                    android:textColor="@color/segmented_text"
                     android:textSize="13sp"
                     android:width="48dip" />
 
@@ -76,6 +76,7 @@
                     android:gravity="center_vertical|center_horizontal"
                     android:height="32dip"
                     android:text="@string/mapbutton_incomp"
+                    android:textColor="@color/segmented_text"
                     android:textSize="13sp"
                     android:width="48dip" />
             </RadioGroup>
@@ -95,10 +96,10 @@
                     android:layout_height="wrap_content"
                     android:background="@drawable/segmented_left"
                     android:button="@null"
-                    android:checked="true"
                     android:gravity="center_vertical|center_horizontal"
                     android:height="32dip"
                     android:text="@string/mapbutton_map"
+                    android:textColor="@color/segmented_text"
                     android:textSize="13sp"
                     android:width="48dip" />
 
@@ -112,6 +113,7 @@
                     android:gravity="center_vertical|center_horizontal"
                     android:height="32dip"
                     android:text="@string/mapbutton_satellite"
+                    android:textColor="@color/segmented_text"
                     android:textSize="13sp"
                     android:width="48dip" />
 
@@ -125,6 +127,7 @@
                     android:gravity="center_vertical|center_horizontal"
                     android:height="32dip"
                     android:text="@string/mapbutton_hybrid"
+                    android:textColor="@color/segmented_text"
                     android:textSize="13sp"
                     android:width="48dip" />
 
@@ -137,6 +140,7 @@
                     android:gravity="center_vertical|center_horizontal"
                     android:height="32dip"
                     android:text="@string/mapbutton_list"
+                    android:textColor="@color/segmented_text"
                     android:textSize="13sp"
                     android:width="48dip" />
             </RadioGroup>
@@ -153,22 +157,27 @@
                 android:id="@+id/filter_controls"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal" >
+                android:orientation="horizontal"
+                android:paddingLeft="56dp"
+                android:paddingRight="56dp"
+                android:paddingTop="10dp" >
 
                 <EditText
                     android:id="@+id/text_search"
                     android:layout_width="0dip"
-                    android:layout_height="wrap_content"
+                    android:layout_height="42dp"
                     android:layout_gravity="center_vertical"
                     android:layout_weight="1"
+                    android:background="@drawable/search_text"
                     android:focusable="true"
                     android:focusableInTouchMode="false"
                     android:imeOptions="actionSearch"
                     android:inputType="text"
-                    android:paddingLeft="48dip"
-                    android:paddingRight="48dip"
+                    android:paddingLeft="16dp"
+                    android:paddingRight="16dp"
                     android:singleLine="true"
-                    android:textSize="24sp" />
+                    android:textColor="@color/search_text"
+                    android:textSize="20sp" />
 
             </LinearLayout>
 

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="segmented_background_selected">#990099cc</color>
+    <color name="segmented_background">#99ffffff</color>
+    <color name="segmented_text">#ff747474</color>
+    <color name="segmneted_text_selected">#ffcccccc</color>
+    <color name="segmented_border">#ff979797</color>
+    <color name="search_text">#ff444444</color>
+    <color name="search_text_background">#99ffffff</color>
+    <color name="search_text_border">#ff979797</color>
+    
+</resources>

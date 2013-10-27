@@ -5,6 +5,6 @@
 	    android:bottomRightRadius="0dp"
 	    android:topLeftRadius="0dp"
 	    android:topRightRadius="6dp" />
-	<stroke android:color="#222222" android:width="0.66dp" />
-	<gradient android:startColor="#7A7672" android:endColor="#6B6865" android:angle="270" />
+	<stroke android:color="@color/segmented_border" android:width="1dp" />
+	<solid android:color="@color/segmented_background"/>
 </shape>

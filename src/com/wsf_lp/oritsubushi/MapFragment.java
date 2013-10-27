@@ -270,6 +270,8 @@ public class MapFragment extends DBAccessFragmentBase
 		super.onSaveInstanceState(outState);
 		if(mGPSIsEnabled && mMapView != null) {
 			mMapView.onSaveInstanceState(outState);
+			outState.putInt(STATE_VISIBILITY_TYPE, mVisibilityType);
+			outState.putInt(STATE_STYLE, mStyle);
 		}
 	}
 
@@ -390,7 +392,7 @@ public class MapFragment extends DBAccessFragmentBase
 	@Override
 	public void onCheckedChanged(RadioGroup group, int checkedId) {
 		// TODO 自動生成されたメソッド・スタブ
-
+		Log.d("segmented", Integer.toString(checkedId));
 	}
 
 	@Override
@@ -449,6 +451,14 @@ public class MapFragment extends DBAccessFragmentBase
 
 	@Override
 	public void onMapClick(LatLng point) {
+		if(mPopupStationCode != 0) {
+			StationItem item = mStationItems.get(mPopupStationCode);
+			if(item != null) {
+				item.getMarker().hideInfoWindow();
+			}
+			mPopupStationCode = 0;
+			return;
+		}
 		if(mControlsContainer.isShown()) {
 			mControlsContainer.startAnimation(mFadeOutAnimation);
 			mControlsContainer.setVisibility(View.INVISIBLE);
