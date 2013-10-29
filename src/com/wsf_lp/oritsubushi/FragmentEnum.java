@@ -38,9 +38,9 @@ public class FragmentEnum {
 	private final MenuProperty[] MENUS = new MenuProperty[] {
 		new MenuProperty(MapFragment.class, R.id.main, R.drawable.map, R.string.map, MenuItemCompat.SHOW_AS_ACTION_NEVER),
 		new MenuProperty(OperatorTypeGroupFragment.class, R.id.operator_type, R.drawable.operator_type, R.string.operator_type, MenuItemCompat.SHOW_AS_ACTION_NEVER),
-		new MenuProperty(PrefContainerFragment.class, R.id.pref, R.drawable.pref, R.string.pref, MenuItemCompat.SHOW_AS_ACTION_NEVER),
-		new MenuProperty(YomiContainerFragment.class, R.id.comp_date, R.drawable.comp_date, R.string.comp_date, MenuItemCompat.SHOW_AS_ACTION_NEVER),
-		new MenuProperty(CompletionDateContainerFragment.class, R.id.yomi, R.drawable.yomi, R.string.yomi, MenuItemCompat.SHOW_AS_ACTION_NEVER),
+		new MenuProperty(PrefGroupFragment.class, R.id.pref, R.drawable.pref, R.string.pref, MenuItemCompat.SHOW_AS_ACTION_NEVER),
+		new MenuProperty(CompletionDateGroupFragment.class, R.id.comp_date, R.drawable.comp_date, R.string.comp_date, MenuItemCompat.SHOW_AS_ACTION_NEVER),
+		new MenuProperty(YomiGroupFragment.class, R.id.yomi, R.drawable.yomi, R.string.yomi, MenuItemCompat.SHOW_AS_ACTION_NEVER),
 		new MenuProperty(SyncFragment.class, R.id.sync, R.drawable.sync, R.string.sync, MenuItemCompat.SHOW_AS_ACTION_ALWAYS),
 		new MenuProperty(InformationFragment.class, R.id.info, R.drawable.info, R.string.info, MenuItemCompat.SHOW_AS_ACTION_IF_ROOM),
 		new MenuProperty(OritsubushiPreferenceFragment.class, R.id.preferences, R.drawable.preferences, R.string.preferences, MenuItemCompat.SHOW_AS_ACTION_IF_ROOM),

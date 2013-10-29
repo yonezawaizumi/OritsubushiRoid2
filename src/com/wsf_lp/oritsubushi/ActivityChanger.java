@@ -50,12 +50,12 @@ public class ActivityChanger {
 		new MenuProperty(R.id.preferences, R.drawable.preferences, R.string.preferences),
 	};
 	private final static int FLOATS_LENGTH = FLOATS.length;
-	private static final MenuProperty OTHER = new MenuProperty(R.id.more, R.drawable.other, R.string.other);
+	private static final MenuProperty OTHER = new MenuProperty(R.id.more, R.drawable.yomi/*other*/, R.string.other);
 
 	private long recentOrder = 0;
 	private ArrayList<MenuProperty> submenues = new ArrayList<MenuProperty>();
 	private final int ID;
-	private final WeakReference<Activity> activity;
+	private final WeakReference<Activity> activity;	
 
 	public ActivityChanger(Activity activity, int id) {
 		ID = id;

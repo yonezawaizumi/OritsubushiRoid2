@@ -71,7 +71,7 @@ public class MainActivity extends ActionBarActivity implements
 				GravityCompat.START);
 
 		// DrawerList button
-		mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.drawable.ic_drawer, R.string.yomi, R.string.yomi) {
+		mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.drawable.ic_drawer, R.string.drawer_open_desc, R.string.drawer_close_desc) {
 			@Override
 			public void onDrawerOpened(View view) {
 				supportInvalidateOptionsMenu();
@@ -82,7 +82,7 @@ public class MainActivity extends ActionBarActivity implements
 				supportInvalidateOptionsMenu();
 				if(mDrawerMenuIsSelected) {
 					mDrawerMenuIsSelected = false;
-					execFragment(false);
+					execFragment(0, false);
 				}
 			}
 		};
@@ -94,7 +94,7 @@ public class MainActivity extends ActionBarActivity implements
 		mDrawerList.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
 		mDrawerList.setItemChecked(recentFragmentPosition, true);
 		mDrawerList.setOnItemClickListener(this);
-		execFragment(true);
+		execFragment(0, true);
 	}
 
 	@Override
@@ -138,13 +138,23 @@ public class MainActivity extends ActionBarActivity implements
             return true;
         } else if(item.getItemId() == android.R.id.home){
         	getSupportFragmentManager().popBackStack();
+        } else if(execFragment(item.getItemId(), false)) {
+        	return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
-	private boolean execFragment(boolean isFirst) {
-		int position = mDrawerList.getCheckedItemPosition();
-		Class<? extends Fragment> fragmentClass = FragmentEnum.getInstance().getFragmentClassByMenuPosition(position);
+	private boolean execFragment(int id, boolean isFirst) {
+		FragmentEnum fragmentEnum = FragmentEnum.getInstance();
+		Class<? extends Fragment> fragmentClass;
+		int position;
+		if (id != 0) {
+			fragmentClass = fragmentEnum.getFragmentClassById(id);
+			position = fragmentEnum.getMenuFragmentPosition(fragmentClass);
+		} else {
+			position = mDrawerList.getCheckedItemPosition();
+			fragmentClass = fragmentEnum.getFragmentClassByMenuPosition(position);
+		}
 		if (fragmentClass != null) {
 			String tag = fragmentClass.getCanonicalName();
 			FragmentManager fragmentManager = getSupportFragmentManager();

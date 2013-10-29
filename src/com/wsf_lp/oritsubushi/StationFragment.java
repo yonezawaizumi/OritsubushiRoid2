@@ -46,9 +46,10 @@ public class StationFragment extends DBAccessFragmentBase {
 		fragment.setArguments(bundle);
 		manager.beginTransaction()
 			.setCustomAnimations(R.anim.slide_in_right, R.anim.none, R.anim.none, R.anim.slide_out_right)
-			.hide(currentFragment)
-			.show(fragment)
-			.add(MainActivity.CONTENT_VIEW_ID, fragment, currentFragment.getClass().getCanonicalName() + '@' + StationFragment.class.getCanonicalName())
+			//.hide(currentFragment)
+			//.show(fragment)
+			//.add(MainActivity.CONTENT_VIEW_ID, fragment, currentFragment.getClass().getCanonicalName() + '@' + StationFragment.class.getCanonicalName())
+			.replace(MainActivity.CONTENT_VIEW_ID, fragment, currentFragment.getClass().getCanonicalName() + '@' + StationFragment.class.getCanonicalName())
 			.addToBackStack(null)
 			.commit();
 	}

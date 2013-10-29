@@ -7,7 +7,7 @@
     <item android:id="@+id/pref" android:title="@string/pref" android:icon="@drawable/pref"></item>
     
     <item android:id="@+id/yomi" android:title="@string/yomi" android:icon="@drawable/yomi"></item><item android:id="@+id/comp_date" android:title="@string/comp_date" android:icon="@drawable/comp_date"></item>
-    <item android:id="@+id/more" android:title="@string/other" android:icon="@drawable/other">
+    <item android:id="@+id/more" android:title="@string/other" android:icon="@drawable/yomi">
         <menu>    <item android:id="@+id/info" android:title="@string/info" android:icon="@drawable/info"></item>
     <item android:id="@+id/sync" android:title="@string/sync" android:icon="@drawable/sync"></item>
 

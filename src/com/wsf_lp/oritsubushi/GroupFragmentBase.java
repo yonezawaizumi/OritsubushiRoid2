@@ -141,16 +141,11 @@ public abstract class GroupFragmentBase extends DBAccessFragmentBase implements 
 				mPanels[index].mHeaderGroup = (Group)parcelableArray[index];
 				if(isDatabaseEnabled()) {
 					reloadHeaderGroup(index);
-					loadGroup(index);
+					loadGroupInternal(index);
 				}
 			}
-		} else {
-			//TODO: restore listview position
-			for(int index = 0; index <= mCurrentPanelIndex; ++index) {
-				mPanels[index].mCellAdapter.notifyDataSetChanged();
-				mPanels[index].mWrapper.setVisibility(View.GONE);
-			}
 		}
+		
 		mFlipper.setInAnimation(null);
 		mFlipper.setOutAnimation(null);
 		mFlipper.setDisplayedChild(getCurrentPanelIndex());
@@ -164,9 +159,16 @@ public abstract class GroupFragmentBase extends DBAccessFragmentBase implements 
 		if(!restoreInstance(savedInstanceState)) {
 			mPanels[0].mHeaderGroup = createDefaultTopHeaderGroup();
 		}
+		for(int index = 0; index <= mCurrentPanelIndex; ++index) {
+			Panel panel = mPanels[index];
+			if(panel.mGroups.size() > 0) {
+				panel.mCellAdapter.notifyDataSetChanged();
+				panel.mWrapper.setVisibility(View.GONE);
+			}
+		}
 		updateAllTexts();
 	}
-
+	
 	@Override
 	public void onResume() {
 		super.onResume();
@@ -241,6 +243,9 @@ public abstract class GroupFragmentBase extends DBAccessFragmentBase implements 
 		panel.mGroups.clear();
 		panel.mGroups.ensureCapacity(newGroups.size());
 		panel.mGroups.addAll(newGroups);
+		if(panel.mWrapper != null) {
+			panel.mWrapper.setVisibility(View.GONE);
+		}
 	}
 
 	protected abstract int getPanelCount();
@@ -254,6 +259,13 @@ public abstract class GroupFragmentBase extends DBAccessFragmentBase implements 
 	protected abstract Group createDefaultTopHeaderGroup();
 	protected abstract int updateStation(Station station);
 
+	private void loadGroupInternal(int panelIndex) {
+		if(mFlipper != null) {
+			mPanels[panelIndex].mWrapper.setVisibility(View.VISIBLE);
+		}
+		loadGroup(panelIndex);
+	}
+	
 	protected void reset() {
 		mCurrentPanelIndex = 0;
 		if(mFlipper != null) {
@@ -261,7 +273,7 @@ public abstract class GroupFragmentBase extends DBAccessFragmentBase implements 
 			mFlipper.setOutAnimation(null);
 			mFlipper.setDisplayedChild(0);
 		}
-		loadGroup(0);
+		loadGroupInternal(0);
 	}
 
 	/* must be override */
@@ -335,7 +347,7 @@ public abstract class GroupFragmentBase extends DBAccessFragmentBase implements 
 		if(isEnabled) {
 			for(int index = getCurrentPanelIndex(); index >= 0; --index) {
 				reloadHeaderGroup(index);
-				loadGroup(index);
+				loadGroupInternal(index);
 			}
 		}
 	}

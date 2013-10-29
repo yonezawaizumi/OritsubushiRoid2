@@ -95,4 +95,6 @@
     <string name="sync_abort_ok">中止する</string>
     <string name="sync_abort_cancel">続行する</string>
     <string name="information_load_error">お知らせが読み込めませんでした</string>
+    <string name="drawer_open_desc">メニューを開きます</string>
+    <string name="drawer_close_desc">メニューを閉じます</string>
 </resources>

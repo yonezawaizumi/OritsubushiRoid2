@@ -7,6 +7,7 @@ import java.util.List;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.os.Bundle;
@@ -47,10 +48,13 @@ import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
+import com.wsf_lp.android.Geocoder;
 import com.wsf_lp.android.GeocoderDialogUtil;
 import com.wsf_lp.mapapp.MapAreaV2;
 import com.wsf_lp.mapapp.StationItem;
 import com.wsf_lp.mapapp.data.Database;
+import com.wsf_lp.mapapp.data.OritsubushiBroadcastReceiver;
+import com.wsf_lp.mapapp.data.OritsubushiNotificationIntent;
 import com.wsf_lp.mapapp.data.Station;
 
 
@@ -58,7 +62,9 @@ public class MapFragment extends DBAccessFragmentBase
 	implements ListView.OnItemClickListener,
 		RadioGroup.OnCheckedChangeListener,
 		OnClickListener, OnFocusChangeListener, OnEditorActionListener,
-		OnCameraChangeListener, OnMapClickListener, OnMarkerClickListener, OnInfoWindowClickListener, InfoWindowAdapter {
+		OnCameraChangeListener, OnMapClickListener, OnMarkerClickListener, OnInfoWindowClickListener, InfoWindowAdapter,
+		Geocoder.OnResultListener,
+		OritsubushiBroadcastReceiver.MapListener {
 
 	private static final int[] VISIBILITY_BUTTON_IDS = {
 		R.id.mapbutton_all,
@@ -104,8 +110,13 @@ public class MapFragment extends DBAccessFragmentBase
 	private Animation mFadeInAnimation;
 	private Animation mFadeOutAnimation;
 	//private View locationWrapper;
-	private boolean mIsSearching;
+	private Geocoder mGeocoder;
 
+	@Override
+	protected IntentFilter getIntentFilter() {
+		return OritsubushiNotificationIntent.getMapIntentFilter();
+	}
+	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -146,7 +157,6 @@ public class MapFragment extends DBAccessFragmentBase
 		mSearchEdit.setOnEditorActionListener(this);
 
 		//locationWrapper = findViewById(R.id.location_wrapper);
-		mIsSearching = false;
 
 		mListView = (ListView)contentView.findViewById(R.id.map_list_view);
 		mCellAdapter = new CellAdapter(mStationList, getActivity());
@@ -193,6 +203,8 @@ public class MapFragment extends DBAccessFragmentBase
 
 			mFadeInAnimation = AnimationUtils.loadAnimation(activity, R.anim.map_controls_fade_in);
 			mFadeOutAnimation = AnimationUtils.loadAnimation(activity, R.anim.map_controls_fade_out);
+
+			onStyleCheckedChanged(mStyle, true);
 		} else {
 			mMapView.setVisibility(View.GONE);
 			wrapper.setVisibility(View.GONE);
@@ -303,6 +315,7 @@ public class MapFragment extends DBAccessFragmentBase
 		mStationList.clear();
 		mStationItems.clear();
 		mCenterPoints.clear();
+		mGeocoder = null;
 	}
 
 	@Override
@@ -373,6 +386,7 @@ public class MapFragment extends DBAccessFragmentBase
 			return;
 		} else if(isFirst) {
 			initialize();
+			initializeStationVisibility();
 		} else {
 			clearStations();
 			if(mMapView != null) {
@@ -386,19 +400,111 @@ public class MapFragment extends DBAccessFragmentBase
 		// TODO updatedStationsを見る
 		if(isEnabled) {
 			initialize();
+			initializeStationVisibility();
+		}
+	}
+
+	private void onVisibilityCheckedChanged(int visibilityType, boolean forceInitialize) {
+		if(mVisibilityType != visibilityType || forceInitialize) {
+			mVisibilityType = visibilityType;
+			callDatabase(Database.MethodName.SET_VISIBILITY_TYPE, getResources(), Integer.valueOf(visibilityType));
 		}
 	}
 
 	@Override
-	public void onCheckedChanged(RadioGroup group, int checkedId) {
-		// TODO 自動生成されたメソッド・スタブ
-		Log.d("segmented", Integer.toString(checkedId));
+	public void onMapStatusChanged() {
+		loadStations(true);
 	}
 
 	@Override
-	public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
-		// TODO 自動生成されたメソッド・スタブ
+	public void onMapMoveTo(Station station) {
+		if(!mGPSIsEnabled) {
+			return;
+		}
+		LatLng latLng = station.getLatLng();
+		if(mMapView != null) {
+			mMapView.getMap().animateCamera(CameraUpdateFactory.newLatLng(latLng), mInfoWindowAnimationDuration, null);
+		} else {
+			PreferenceManager.getDefaultSharedPreferences(getActivity()).edit()
+			.putFloat(PreferenceKey.MAP_CAMERA_LAT, (float)latLng.latitude)
+			.putFloat(PreferenceKey.MAP_CAMERA_LNG, (float)latLng.longitude)
+			.commit();
+		}		
+	}
 
+	private void onStyleCheckedChanged(int style, boolean forceInitialize) {
+		if(mStyle == style && !forceInitialize) {
+			return;
+		}
+		mStyle = style;
+		if(style == Style.LIST) {
+			if(mListView.getVisibility() != View.VISIBLE) {
+				mSearchEdit.setVisibility(View.INVISIBLE);
+				mControlsContainer.setVisibility(View.INVISIBLE);
+				if(!forceInitialize) {
+					mMapView.startAnimation(mFadeOutAnimation);
+				}
+				mMapView.setVisibility(View.INVISIBLE);
+				if(!forceInitialize) {
+					mListView.startAnimation(mFadeInAnimation);
+				}
+				mListView.setVisibility(View.VISIBLE);
+			}
+		} else {
+			if(mListView.getVisibility() == View.VISIBLE) {
+				mSearchEdit.setVisibility(View.VISIBLE);
+				mControlsContainer.setVisibility(View.VISIBLE);
+				if(!forceInitialize) {
+					mMapView.startAnimation(mFadeInAnimation);
+				}
+				mMapView.setVisibility(View.VISIBLE);
+				if(!forceInitialize) {
+					mListView.startAnimation(mFadeOutAnimation);
+				}
+				mListView.setVisibility(View.INVISIBLE);
+			}
+			GoogleMap map = mMapView.getMap();
+			switch(style) {
+			case Style.MAP:
+				map.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+				break;
+			case Style.SATELLITE:
+				map.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
+				break;
+			case Style.HYBRID:
+				map.setMapType(GoogleMap.MAP_TYPE_HYBRID);
+				break;
+			}
+		}
+	}
+	
+	private void initializeStationVisibility() {
+		onVisibilityCheckedChanged(mVisibilityType, true);
+	}
+	
+	@Override
+	public void onCheckedChanged(RadioGroup group, int checkedId) {
+		int groupId = group.getId();
+		if (groupId == R.id.radio_map_visibility) {
+			for(int visibility = VISIBILITY_BUTTON_IDS.length - 1; visibility >= 0; --visibility) {
+				if(VISIBILITY_BUTTON_IDS[visibility] == checkedId) {
+					onVisibilityCheckedChanged(visibility, false);
+					break;
+				}
+			}
+		} else if (groupId == R.id.radio_map_style) {
+			for(int style = STYLE_BUTTON_IDS.length - 1; style >= 0; --style) {
+				if(STYLE_BUTTON_IDS[style] == checkedId) {
+					onStyleCheckedChanged(style, false);
+					break;
+				}
+			}
+		}
+	}
+
+	@Override
+	public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+		StationFragment.show(this, (Station)mListView.getItemAtPosition(position));
 	}
 
 	@Override
@@ -475,7 +581,7 @@ public class MapFragment extends DBAccessFragmentBase
 
 	@Override
 	public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-		if (!mIsSearching && (event == null || event.getKeyCode() == KeyEvent.KEYCODE_ENTER)) {
+		if (mGeocoder == null && (event == null || event.getKeyCode() == KeyEvent.KEYCODE_ENTER)) {
 			mMapView.requestFocusFromTouch();
 			doSearch();
 		}
@@ -610,29 +716,27 @@ public class MapFragment extends DBAccessFragmentBase
 
 	private void doSearch() {
 		//TODO:現時点では地点検索のみの実装
-		//mIsSearching = true;
-		/*new GeocoderDialogUtil(this, R.string.maybe, R.string.cancel)
-			.setListener(this)
-			.setLocation(searchEdit.getText().toString())
-			.request();*/
-	}
-/*
-	@Override
-	public void onGeocoderAddressSelect(GeocoderDialogUtil dialogUtil, String title, int lat, int lng) {
-		//mapView.getController().animateTo(new GeoPoint(lat, lng));
-		//mIsSearching = false;
-		//TODO:検索バー消す
+		mGeocoder = new Geocoder(this, R.string.maybe);
+		mGeocoder.request(mSearchEdit.getText().toString());
 	}
 
 	@Override
-	public void onGeocoderAddressNotFound(GeocoderDialogUtil dialogUtil) {
-		Toast.makeText(this, getString(R.string.search_zero_results_format, searchEdit.getText().toString()), Toast.LENGTH_LONG).show();
-		mIsSearching = false;
+	public void onGeocoderAddressSelect(String title, LatLng latLng) {
+		if(mMapView != null) {
+			mMapView.getMap().animateCamera(CameraUpdateFactory.newLatLng(latLng), mInfoWindowAnimationDuration, null);
+		}
+		mGeocoder = null;
 		//TODO:検索バー消す
+	}
+	
+	@Override
+	public void onGeocoderAddressNotFound() {
+		Toast.makeText(getActivity(), getString(R.string.search_zero_results_format, mSearchEdit.getText().toString()), Toast.LENGTH_LONG).show();
+		mGeocoder = null;
 	}
 
 	@Override
-	public void onGeocoderError(GeocoderDialogUtil dialogUtil, int reason) {
+	public void onGeocoderError(int reason) {
 		int id;
 		switch(reason) {
 		case GeocoderDialogUtil.REQUEST_DENIED:
@@ -645,15 +749,13 @@ public class MapFragment extends DBAccessFragmentBase
 			id = R.string.search_fatal_error;
 			break;
 		}
-		Toast.makeText(this, id, Toast.LENGTH_LONG).show();
-		mIsSearching = false;
-		//TODO:検索バー消す
+		Toast.makeText(getActivity(), id, Toast.LENGTH_LONG).show();
+		mGeocoder = null;
 	}
 
 	@Override
-	public void onGeocoderCancel(GeocoderDialogUtil dialogUtil) {
-		mIsSearching = false;
-		//TODO:検索バー消す
-	}*/
+	public void onGeocoderCancel() {
+		mGeocoder = null;
+	}
 
 }
