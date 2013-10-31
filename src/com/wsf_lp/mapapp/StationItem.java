@@ -9,7 +9,6 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.wsf_lp.mapapp.data.Station;
 
 import android.content.res.Resources;
-import android.graphics.drawable.Drawable;
 
 public class StationItem {
 	private Station station;

@@ -160,7 +160,9 @@ public class SyncFragment extends DBAccessFragmentBase
 	@Override
 	public void onSaveInstanceState(Bundle outState) {
 		super.onSaveInstanceState(outState);
-		mWebView.saveState(outState);
+		if(mWebView != null) {
+			mWebView.saveState(outState);
+		}
 	}
 
 	@Override
@@ -317,7 +319,9 @@ public class SyncFragment extends DBAccessFragmentBase
 		mAuthState = STATE_BEGIN_LOGOUT;
 		voidAllButtons();
 		HttpClientForSync.logout(getActivity().getApplicationContext());
-		mWebView.loadUrl(logoutUrl);
+		if(mWebView != null) {
+			mWebView.loadUrl(logoutUrl);
+		}
 	}
 
 	private void login() {

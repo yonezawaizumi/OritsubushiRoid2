@@ -29,7 +29,6 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.ProgressBar;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -254,7 +253,6 @@ public class MapFragment extends DBAccessFragmentBase
 	public void onPause() {
 		super.onPause();
 		if(mGPSIsEnabled) {
-			mMapView.setVisibility(View.INVISIBLE);
 			mMapView.onPause();
 		}
 	}
