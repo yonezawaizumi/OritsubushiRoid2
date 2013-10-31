@@ -72,7 +72,7 @@ public class PrefGroupFragment extends GroupFragmentBase {
 			loadGroup(STATION_INDEX);
 			return true;
 		case STATION_INDEX:
-			StationFragment.show(this, ((StationGroup)group).getStation());
+			StationFragment.show(this, ((StationGroup)group).getStation(), false);
 			return false;
 		}
 		return false;

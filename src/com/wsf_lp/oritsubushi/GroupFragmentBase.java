@@ -11,7 +11,6 @@ import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
 import android.widget.Button;
@@ -28,9 +27,6 @@ public abstract class GroupFragmentBase extends DBAccessFragmentBase implements 
 	protected static final long RETRY_MSEC = 5000;
 
 	private ViewFlipper mFlipper;
-	private Animation mInAnimation;
-	private Animation mOutAnimation;
-	private Animation mNonAnimation;
 
 	protected static class Panel {
 		public TextView mTitle;
@@ -75,9 +71,6 @@ public abstract class GroupFragmentBase extends DBAccessFragmentBase implements 
 		View view = inflater.inflate(R.layout.group, container, false);
 
 		mFlipper = (ViewFlipper)view.findViewById(R.id.group_flipper);
-		mInAnimation = AnimationUtils.loadAnimation(activity, R.anim.slide_in_right);
-		mOutAnimation = AnimationUtils.loadAnimation(activity, R.anim.slide_out_right);
-		mNonAnimation = AnimationUtils.loadAnimation(activity, R.anim.none);
 		TypedValue value = new TypedValue();
 		activity.getTheme().resolveAttribute(android.R.attr.colorBackground, value, true);
 		int panelCount = getPanelCount();
@@ -108,8 +101,8 @@ public abstract class GroupFragmentBase extends DBAccessFragmentBase implements 
 					if(getCurrentPanelIndex() == panelIndex && onSelectGroup(panelIndex, mPanels[panelIndex].mGroups.get(position))) {
 						updateText(panelIndex + 1);
 						mPanels[panelIndex + 1].mWrapper.setVisibility(View.VISIBLE);
-						mFlipper.setInAnimation(mInAnimation);
-						mFlipper.setOutAnimation(mNonAnimation);
+						mFlipper.setInAnimation(AnimationUtils.loadAnimation(getActivity(), R.anim.slide_in_right));
+						mFlipper.setOutAnimation(AnimationUtils.loadAnimation(getActivity(), R.anim.slide_out_left));
 						++mCurrentPanelIndex;
 						mFlipper.showNext();
 					}
@@ -210,8 +203,8 @@ public abstract class GroupFragmentBase extends DBAccessFragmentBase implements 
 	@Override
 	public boolean onBackPressed(MainActivity activity) {
 		if(mFlipper != null && mFlipper.isShown() && getCurrentPanelIndex() > 0) {
-			mFlipper.setInAnimation(mNonAnimation);
-			mFlipper.setOutAnimation(mOutAnimation);
+			mFlipper.setInAnimation(AnimationUtils.loadAnimation(getActivity(), R.anim.slide_in_left));
+			mFlipper.setOutAnimation(AnimationUtils.loadAnimation(getActivity(), R.anim.slide_out_right));
 			--mCurrentPanelIndex;
 			mFlipper.showPrevious();
 			return true;
@@ -364,4 +357,5 @@ public abstract class GroupFragmentBase extends DBAccessFragmentBase implements 
 			mPanels[panelIndex].mCellAdapter.notifyDataSetChanged();
 		}
 	}
+	
 }

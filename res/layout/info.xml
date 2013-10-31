@@ -18,4 +18,18 @@
         android:layout_margin="20dp"
         android:drawableLeft="@drawable/sync" />
 
+    <FrameLayout
+        android:id="@+id/wrapper"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#77000000" >
+
+        <ProgressBar
+            android:id="@+id/progressBar1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical|center_horizontal"
+            android:layout_marginBottom="32dp" />
+    </FrameLayout>
+
 </FrameLayout>

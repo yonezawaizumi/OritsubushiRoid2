@@ -79,7 +79,7 @@ public class CompletionDateGroupFragment extends GroupFragmentBase {
 	protected boolean onSelectGroup(int panelIndex, Group group) {
 		//ひでー実装…
 		if(group instanceof StationGroup) {
-			StationFragment.show(this, ((StationGroup)group).getStation());
+			StationFragment.show(this, ((StationGroup)group).getStation(), false);
 			return false;
 		}
 		switch(panelIndex) {

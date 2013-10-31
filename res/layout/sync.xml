@@ -52,7 +52,7 @@
                     android:layout_height="wrap_content"
                     android:layout_alignParentRight="true"
                     android:layout_centerVertical="true"
-                    android:minHeight="30dp"
+                    android:minHeight="42dp"
                     android:text="@string/sync_button_clear_recent_date" />
 
                 <TextView
@@ -96,7 +96,7 @@
                     android:layout_height="wrap_content"
                     android:layout_alignParentRight="true"
                     android:layout_centerVertical="true"
-                    android:minHeight="30dp"
+                    android:minHeight="42dp"
                     android:text="@string/sync_button_logout" />
 
                 <com.wsf_lp.oritsubushi.customs.FontFitTextView
@@ -141,7 +141,7 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="top|center_horizontal"
                     android:layout_margin="32sp"
-                    android:minHeight="30dp"
+                    android:minHeight="42dp"
                     android:text="@string/sync_button_start" />
 
             </FrameLayout>

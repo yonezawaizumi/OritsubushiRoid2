@@ -35,49 +35,6 @@
 				<category android:name="android.intent.category.LAUNCHER" />
 			</intent-filter>
 		</activity>
-		<!-- activity android:label="@string/app_name" android:name=".OritsubushiRoidActivity"
-			android:taskAffinity="com.wsf_lp.oritsubushi.map" android:launchMode="singleTask"
-			android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|orientation|fontScale">
-			<intent-filter> <action android:name="android.intent.action.MAIN" /> <category
-			android:name="android.intent.category.LAUNCHER" /> </intent-filter> </activity -->
-		<activity android:label="@string/preferences_title"
-			android:name="OritsubushiPreferenceActivity">
-		</activity>
-		<activity android:label="@string/verbose_title" android:name=".VerboseActivity"
-			android:launchMode="standard"
-			android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|orientation|fontScale">
-		</activity>
-		<activity android:label="@string/operator_type_title"
-			android:launchMode="singleTask" android:name=".OperatorTypeGroupActivity"
-			android:taskAffinity="com.wsf_lp.oritsubushi.operator_type"
-			android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|orientation|fontScale">
-		</activity>
-		<activity android:label="@string/pref_title"
-			android:launchMode="singleTask" android:name=".PrefGroupActivity"
-			android:taskAffinity="com.wsf_lp.oritsubushi.pref"
-			android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|orientation|fontScale">
-		</activity>
-		<activity android:label="@string/yomi_title"
-			android:launchMode="singleTask" android:name=".YomiGroupActivity"
-			android:taskAffinity="com.wsf_lp.oritsubushi.yomi"
-			android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|orientation|fontScale">
-		</activity>
-		<activity android:label="@string/comp_date_title"
-			android:launchMode="singleTask" android:name=".CompletionDateGroupActivity"
-			android:taskAffinity="com.wsf_lp.oritsubushi.comp_date"
-			android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|orientation|fontScale">
-		</activity>
-		<activity android:label="@string/info_title"
-			android:launchMode="singleTask" android:name=".InformationActivity"
-			android:taskAffinity="com.wsf_lp.oritsubushi.info"
-			android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|orientation|fontScale">
-		</activity>
-		<activity android:label="@string/sync_title"
-			android:launchMode="singleTask" android:name=".SyncActivity"
-			android:taskAffinity="com.wsf_lp.oritsubushi.sync"
-			android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|orientation|fontScale">
-		</activity>
-		<!-- uses-library android:name="com.google.android.maps" / -->
 		<service android:name="com.wsf_lp.mapapp.data.DatabaseService"
 			android:exported="false" />
 	</application>

@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,7 +19,6 @@ import android.widget.TextView;
 
 import com.wsf_lp.android.Prefs;
 import com.wsf_lp.mapapp.data.Database;
-import com.wsf_lp.mapapp.data.OritsubushiNotificationIntent;
 import com.wsf_lp.mapapp.data.Station;
 
 public class StationFragment extends DBAccessFragmentBase {
@@ -38,18 +38,19 @@ public class StationFragment extends DBAccessFragmentBase {
 	private Station station;
 	public Station getStation() { return station; }
 
-	public static void show(Fragment currentFragment, Station station) {
+	public static void show(Fragment currentFragment, Station station, boolean useScaleAnimation) {
 		FragmentManager manager = ((FragmentActivity)currentFragment.getActivity()).getSupportFragmentManager();
 		StationFragment fragment = new StationFragment();
 		Bundle bundle = new Bundle();
 		bundle.putParcelable(STATE_STATION, station);
 		fragment.setArguments(bundle);
-		manager.beginTransaction()
-			.setCustomAnimations(R.anim.slide_in_right, R.anim.none, R.anim.none, R.anim.slide_out_right)
-			//.hide(currentFragment)
-			//.show(fragment)
-			//.add(MainActivity.CONTENT_VIEW_ID, fragment, currentFragment.getClass().getCanonicalName() + '@' + StationFragment.class.getCanonicalName())
-			.replace(MainActivity.CONTENT_VIEW_ID, fragment, currentFragment.getClass().getCanonicalName() + '@' + StationFragment.class.getCanonicalName())
+		FragmentTransaction transaction = manager.beginTransaction();
+		if(useScaleAnimation) {
+			transaction.setCustomAnimations(R.anim.station_in, R.anim.none, R.anim.none, R.anim.station_out);
+		} else {
+			transaction.setCustomAnimations(R.anim.slide_in_right, R.anim.slide_out_left, R.anim.slide_in_left, R.anim.slide_out_right);
+		}
+		transaction.replace(MainActivity.CONTENT_VIEW_ID, fragment, currentFragment.getClass().getCanonicalName() + '@' + StationFragment.class.getCanonicalName())
 			.addToBackStack(null)
 			.commit();
 	}
@@ -94,7 +95,8 @@ public class StationFragment extends DBAccessFragmentBase {
 		view.findViewById(R.id.verbose_button_move_to).setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				getActivity().sendBroadcast(new OritsubushiNotificationIntent().setMapMoveTo(station));
+				//直接ブロードキャストしないでこれ呼ばないとMapFragmentインスタンスないときに困る
+				MapFragment.moveTo(getActivity(), station);
 			}
 		});
 

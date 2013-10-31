@@ -7,12 +7,13 @@ import com.loopj.android.http.AsyncHttpResponseHandler;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.animation.AnimationUtils;
 import android.view.ViewGroup;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -21,23 +22,41 @@ import android.widget.Button;
 public class InformationFragment extends MenuableFragmentBase {
 
 	private static class MyWebViewClient extends WebViewClient {
-		private final WeakReference<Fragment> mFragment;
-		private final String mMyUrl;
+		private final WeakReference<InformationFragment> mFragment;
+		private final String mUrl;
+		private final String mResourceUrlBase;
+		private boolean mLoading;
 
-		private MyWebViewClient(Fragment fragment, String myUrl) {
-			mFragment = new WeakReference<Fragment>(fragment);
-			mMyUrl = myUrl;
+		private MyWebViewClient(InformationFragment fragment, String url, String resourceUrlBase) {
+			mFragment = new WeakReference<InformationFragment>(fragment);
+			mUrl = url;
+			mResourceUrlBase = resourceUrlBase;
 		}
 
 		@Override
 		public boolean shouldOverrideUrlLoading(WebView view, String url) {
-			if(mMyUrl.equals(url)) {
+			if(mUrl.equals(url)) {
 				return false;
 			} else if (mFragment.get() != null){
 				mFragment.get().startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
 				return true;
 			} else {
 				return false;
+			}
+		}
+		
+		@Override
+		public void onPageStarted(WebView view, String url, Bitmap favicon) {
+			mLoading = true;
+			super.onPageStarted(view, url, favicon);
+		}
+		
+		@Override
+		public void onLoadResource(WebView view, String url) {
+			super.onLoadResource(view, url);
+			if(mLoading && !url.startsWith(mResourceUrlBase)) {
+				mFragment.get().onPageReady();
+				mLoading = false;
 			}
 		}
 	}
@@ -66,7 +85,8 @@ public class InformationFragment extends MenuableFragmentBase {
 	AsyncHttpClient mHttpClient = new AsyncHttpClient();
 	Button mReloadButton;
 	WebView mWebView;
-	String mMyUrl;
+	View mWrapper;
+	String mUrl;
 	String mContent;
 	String mContentType;
 	boolean mIsLoading;
@@ -74,13 +94,20 @@ public class InformationFragment extends MenuableFragmentBase {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		mMyUrl = getString(R.string.information_url);
+		mUrl = getString(R.string.information_url);
 		load();
 	}
 
 	private void setContent() {
 		if(mContent != null) {
-			mWebView.loadDataWithBaseURL(mMyUrl, mContent, mContentType, "UTF-8", null);
+			mWebView.loadDataWithBaseURL(mUrl, mContent, mContentType, "UTF-8", null);
+		}
+	}
+	
+	private void onPageReady() {
+		if(mWrapper != null && mWrapper.getVisibility() != View.GONE){ 
+			mWrapper.startAnimation(AnimationUtils.loadAnimation(getActivity(), R.anim.wrapper_fade_out));
+			mWrapper.setVisibility(View.GONE);
 		}
 	}
 
@@ -105,7 +132,11 @@ public class InformationFragment extends MenuableFragmentBase {
 	private void load() {
 		if(!mIsLoading) {
 			mIsLoading = true;
-			mHttpClient.get(mMyUrl, new HttpResponseHandler(this));
+			mHttpClient.get(mUrl, new HttpResponseHandler(this));
+			if(mWrapper != null) {
+				mWrapper.startAnimation(AnimationUtils.loadAnimation(getActivity(), R.anim.wrapper_fade_in));
+				mWrapper.setVisibility(View.VISIBLE);
+			}
 		}
 	}
 
@@ -117,6 +148,8 @@ public class InformationFragment extends MenuableFragmentBase {
 		mReloadButton = (Button)view.findViewById(R.id.button_reload);
 		mReloadButton.setEnabled(false);
 		mWebView = (WebView)view.findViewById(R.id.web_view);
+		mWrapper = view.findViewById(R.id.wrapper);
+		mWrapper.setVisibility(mIsLoading ? View.VISIBLE : View.GONE);
 		mReloadButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
@@ -125,7 +158,7 @@ public class InformationFragment extends MenuableFragmentBase {
 			}
 		});
 		mWebView.getSettings().setJavaScriptEnabled(true);
-		mWebView.setWebViewClient(new MyWebViewClient(this, mMyUrl));
+		mWebView.setWebViewClient(new MyWebViewClient(this, mUrl, getString(R.string.information_resource_url_base)));
 
 		return view;
 	}

@@ -22,6 +22,7 @@ import android.view.ViewGroup;
 import android.view.View.OnClickListener;
 import android.view.View.OnFocusChangeListener;
 import android.view.animation.Animation;
+import android.view.animation.Animation.AnimationListener;
 import android.view.animation.AnimationUtils;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
@@ -49,7 +50,6 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.wsf_lp.android.Geocoder;
-import com.wsf_lp.android.GeocoderDialogUtil;
 import com.wsf_lp.mapapp.MapAreaV2;
 import com.wsf_lp.mapapp.StationItem;
 import com.wsf_lp.mapapp.data.Database;
@@ -91,7 +91,8 @@ public class MapFragment extends DBAccessFragmentBase
 	private View mPopupWindow;
 	private long mWaitMilliSec;
 	private int mInfoWindowAnimationDuration;
-	private View mControlsContainer;
+	private View mVisualControlsContainer;
+	private View mFilterControls;
 	private EditText mSearchEdit;
 	private RadioGroup mVisibilityTypeGroup;
 	private int mVisibilityType;
@@ -105,13 +106,16 @@ public class MapFragment extends DBAccessFragmentBase
 	private MapAreaV2 mMapArea;
 	private long mNextUpdateTime;
 	private int mPopupStationCode;
+	private long mPopupCallSequence = Long.MAX_VALUE;
 	private boolean mGPSIsEnabled;
 	private boolean mIsInitialized;
-	private Animation mFadeInAnimation;
-	private Animation mFadeOutAnimation;
+	private int mNumFadeInAnimation;
+	private int mNumFadeOutAnimation;
 	//private View locationWrapper;
 	private Geocoder mGeocoder;
 
+	private boolean isAnimating() { return mNumFadeInAnimation > 0 || mNumFadeOutAnimation > 0; }
+	
 	@Override
 	protected IntentFilter getIntentFilter() {
 		return OritsubushiNotificationIntent.getMapIntentFilter();
@@ -141,7 +145,8 @@ public class MapFragment extends DBAccessFragmentBase
 
 		mMapView = (MapView)contentView.findViewById(R.id.mapview);
 
-		mControlsContainer = contentView.findViewById(R.id.layout_controls_container);
+		mVisualControlsContainer = contentView.findViewById(R.id.visual_controls);
+		mFilterControls = contentView.findViewById(R.id.filter_controls);
 
 		mVisibilityTypeGroup = (RadioGroup)contentView.findViewById(R.id.radio_map_visibility);
 		mVisibilityTypeGroup.setOnCheckedChangeListener(this);
@@ -200,16 +205,13 @@ public class MapFragment extends DBAccessFragmentBase
 				wrapper.setVisibility(View.GONE);
 				loadingWrapper.setVisibility(View.GONE);
 			}
-
-			mFadeInAnimation = AnimationUtils.loadAnimation(activity, R.anim.map_controls_fade_in);
-			mFadeOutAnimation = AnimationUtils.loadAnimation(activity, R.anim.map_controls_fade_out);
-
 			onStyleCheckedChanged(mStyle, true);
 		} else {
 			mMapView.setVisibility(View.GONE);
 			wrapper.setVisibility(View.GONE);
 			loadingWrapper.setVisibility(View.GONE);
-			mControlsContainer.setVisibility(View.GONE);
+			mVisualControlsContainer.setVisibility(View.GONE);
+			mFilterControls.setVisibility(View.GONE);
 		}
 	}
 
@@ -219,27 +221,23 @@ public class MapFragment extends DBAccessFragmentBase
 		if(mGPSIsEnabled) {
 			GoogleMap map = mMapView.getMap();
 			map.setMyLocationEnabled(true);
-			if(mPopupStationCode != 0) {
-				popupInfoWindow();
+			SharedPreferences preference = PreferenceManager.getDefaultSharedPreferences(getActivity());
+			final float INVALID_LAT = 100;
+			float lat = preference.getFloat(PreferenceKey.MAP_CAMERA_LAT, INVALID_LAT);
+			float lng;
+			if(lat == INVALID_LAT) {
+				lat = Float.parseFloat(getString(R.string.heso_latitude));
+				lng = Float.parseFloat(getString(R.string.heso_longitude));
 			} else {
-				SharedPreferences preference = PreferenceManager.getDefaultSharedPreferences(getActivity());
-				final float INVALID_LAT = 100;
-				float lat = preference.getFloat(PreferenceKey.MAP_CAMERA_LAT, INVALID_LAT);
-				float lng;
-				if(lat == INVALID_LAT) {
-					lat = Float.parseFloat(getString(R.string.heso_latitude));
-					lng = Float.parseFloat(getString(R.string.heso_longitude));
-				} else {
-					lng = preference.getFloat(PreferenceKey.MAP_CAMERA_LNG, 0);
-				}
-				CameraPosition position = new CameraPosition(
-						new LatLng(lat, lng),
-						preference.getFloat(PreferenceKey.MAP_CAMERA_ZOOM, (map.getMinZoomLevel() + map.getMaxZoomLevel()) / 2),
-						preference.getFloat(PreferenceKey.MAP_CAMERA_TILT, 0),
-						preference.getFloat(PreferenceKey.MAP_CAMERA_BEARING, 0)
-				);
-				map.moveCamera(CameraUpdateFactory.newCameraPosition(position));
+				lng = preference.getFloat(PreferenceKey.MAP_CAMERA_LNG, 0);
 			}
+			CameraPosition position = new CameraPosition(
+					new LatLng(lat, lng),
+					preference.getFloat(PreferenceKey.MAP_CAMERA_ZOOM, (map.getMinZoomLevel() + map.getMaxZoomLevel()) / 2),
+					preference.getFloat(PreferenceKey.MAP_CAMERA_TILT, 0),
+					preference.getFloat(PreferenceKey.MAP_CAMERA_BEARING, 0)
+			);
+			map.moveCamera(CameraUpdateFactory.newCameraPosition(position));
 		}
 	}
 
@@ -299,17 +297,17 @@ public class MapFragment extends DBAccessFragmentBase
 	public void onDestroyView() {
 		super.onDestroyView();
 		if(mGPSIsEnabled) {
+			mMapView.setVisibility(View.GONE);
 			mMapView.onDestroy();
 		}
 		mMapView = null;
-		mControlsContainer = null;
+		mVisualControlsContainer = null;
+		mFilterControls = null;
 		mSearchEdit = null;
 		mVisibilityTypeGroup = null;
 		mStyleGroup = null;
 		mListView = null;
 		mCellAdapter = null;
-		mFadeInAnimation = null;
-		mFadeOutAnimation = null;
 		mMapArea = null;
 		mNextUpdateTime = 0;
 		mStationList.clear();
@@ -374,7 +372,7 @@ public class MapFragment extends DBAccessFragmentBase
 			if(item != null) {
 				item.setStation(station);
 				if(mPopupStationCode == code) {
-					popupInfoWindow();
+					popupInfoWindow(sequence == mPopupCallSequence);
 				}
 			}
 		}
@@ -418,18 +416,19 @@ public class MapFragment extends DBAccessFragmentBase
 
 	@Override
 	public void onMapMoveTo(Station station) {
-		if(!mGPSIsEnabled) {
-			return;
+		if(mGPSIsEnabled && mMapView != null) {
+			mMapView.getMap().animateCamera(CameraUpdateFactory.newLatLng(station.getLatLng()), mInfoWindowAnimationDuration, null);
 		}
+	}
+	
+	//直接ブロードキャストしないで外部からこれ呼んでください
+	public static void moveTo(Context context, Station station) {
+		context.sendBroadcast(new OritsubushiNotificationIntent().setMapMoveTo(station));
 		LatLng latLng = station.getLatLng();
-		if(mMapView != null) {
-			mMapView.getMap().animateCamera(CameraUpdateFactory.newLatLng(latLng), mInfoWindowAnimationDuration, null);
-		} else {
-			PreferenceManager.getDefaultSharedPreferences(getActivity()).edit()
+		PreferenceManager.getDefaultSharedPreferences(context).edit()
 			.putFloat(PreferenceKey.MAP_CAMERA_LAT, (float)latLng.latitude)
 			.putFloat(PreferenceKey.MAP_CAMERA_LNG, (float)latLng.longitude)
 			.commit();
-		}		
 	}
 
 	private void onStyleCheckedChanged(int style, boolean forceInitialize) {
@@ -439,29 +438,37 @@ public class MapFragment extends DBAccessFragmentBase
 		mStyle = style;
 		if(style == Style.LIST) {
 			if(mListView.getVisibility() != View.VISIBLE) {
-				mSearchEdit.setVisibility(View.INVISIBLE);
-				mControlsContainer.setVisibility(View.INVISIBLE);
-				if(!forceInitialize) {
-					mMapView.startAnimation(mFadeOutAnimation);
+				if(mFilterControls.getVisibility() == View.VISIBLE) {
+					mFilterControls.setVisibility(View.INVISIBLE);
+					if(!forceInitialize) {
+						mFilterControls.startAnimation(createFadeOutAnimation());
+					}
+				}
+				if(mVisualControlsContainer.getVisibility() == View.INVISIBLE) {
+					mVisualControlsContainer.setVisibility(View.VISIBLE);
+					if(!forceInitialize) {
+						mVisualControlsContainer.startAnimation(createFadeInAnimation());
+					}
 				}
 				mMapView.setVisibility(View.INVISIBLE);
-				if(!forceInitialize) {
-					mListView.startAnimation(mFadeInAnimation);
-				}
 				mListView.setVisibility(View.VISIBLE);
+				if(!forceInitialize) {
+					mMapView.startAnimation(createFadeOutAnimation());
+					mListView.startAnimation(createFadeInAnimation());
+				}
 			}
 		} else {
 			if(mListView.getVisibility() == View.VISIBLE) {
-				mSearchEdit.setVisibility(View.VISIBLE);
-				mControlsContainer.setVisibility(View.VISIBLE);
+				mFilterControls.setVisibility(View.VISIBLE);
 				if(!forceInitialize) {
-					mMapView.startAnimation(mFadeInAnimation);
+					mFilterControls.startAnimation(createFadeInAnimation());
 				}
 				mMapView.setVisibility(View.VISIBLE);
-				if(!forceInitialize) {
-					mListView.startAnimation(mFadeOutAnimation);
-				}
 				mListView.setVisibility(View.INVISIBLE);
+				if(!forceInitialize) {
+					mMapView.startAnimation(createFadeInAnimation());
+					mListView.startAnimation(createFadeOutAnimation());
+				}
 			}
 			GoogleMap map = mMapView.getMap();
 			switch(style) {
@@ -504,7 +511,10 @@ public class MapFragment extends DBAccessFragmentBase
 
 	@Override
 	public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-		StationFragment.show(this, (Station)mListView.getItemAtPosition(position));
+		if(isAnimating()) {
+			return;
+		}
+		StationFragment.show(this, (Station)mListView.getItemAtPosition(position), false);
 	}
 
 	@Override
@@ -532,9 +542,12 @@ public class MapFragment extends DBAccessFragmentBase
 
 	@Override
 	public void onInfoWindowClick(Marker marker) {
+		if(isAnimating()) {
+			return;
+		}
 		StationItem item = mStationItems.get(mPopupStationCode);
 		if(item != null && item.getMarker().equals(marker)) {
-			StationFragment.show(this, item.getStation());
+			StationFragment.show(this, item.getStation(), true);
 		}
 	}
 
@@ -544,12 +557,7 @@ public class MapFragment extends DBAccessFragmentBase
 			StationItem item = mStationItems.valueAt(index);
 			if(marker.equals(item.getMarker())) {
 				mPopupStationCode = item.getStation().getCode();
-				if(item.getStation().isReadyToCreateSubtitle()) {
-					return false;
-				} else {
-					loadStationSubtitle(item.getStation());
-					return true;
-				}
+				popupInfoWindow(true);
 			}
 		}
 		return true;
@@ -565,13 +573,15 @@ public class MapFragment extends DBAccessFragmentBase
 			mPopupStationCode = 0;
 			return;
 		}
-		if(mControlsContainer.isShown()) {
-			mControlsContainer.startAnimation(mFadeOutAnimation);
-			mControlsContainer.setVisibility(View.INVISIBLE);
-		} else {
-			mControlsContainer.startAnimation(mFadeInAnimation);
-			mControlsContainer.setVisibility(View.VISIBLE);
+		if(isAnimating()) {
+			return;
 		}
+		boolean isShown = mFilterControls.getVisibility() == View.VISIBLE;
+		mFilterControls.setVisibility(isShown ? View.INVISIBLE : View.VISIBLE);
+		mFilterControls.startAnimation(isShown ? createFadeOutAnimation() : createFadeInAnimation());
+		isShown = mVisualControlsContainer.getVisibility() == View.VISIBLE;
+		mVisualControlsContainer.setVisibility(isShown ? View.INVISIBLE : View.VISIBLE);
+		mVisualControlsContainer.startAnimation(isShown ? createFadeOutAnimation() : createFadeInAnimation());
 	}
 
 	@Override
@@ -601,18 +611,22 @@ public class MapFragment extends DBAccessFragmentBase
 
 	@Override
 	public void onClick(View v) {
+		if(isAnimating()) {
+			return;
+		}
 		v.requestFocusFromTouch();
 	}
 
 	private boolean initialize() {
 		if(isDatabaseEnabled() && mMapView != null && !mIsInitialized && mGPSIsEnabled) {
 			mIsInitialized = true;
-			Animation animation = AnimationUtils.loadAnimation(getActivity(), R.anim.wrapper_fade_out);
 			View container = getView();
 			View wrapper = container.findViewById(R.id.wrapper);
+			Animation animation = AnimationUtils.loadAnimation(getActivity(), R.anim.wrapper_fade_out);
 			wrapper.startAnimation(animation);
 			wrapper.setVisibility(View.GONE);
 			wrapper = container.findViewById(R.id.loading_wrapper);
+			animation = AnimationUtils.loadAnimation(getActivity(), R.anim.wrapper_fade_out);
 			wrapper.startAnimation(animation);
 			wrapper.setVisibility(View.GONE);
 			loadStations(true);
@@ -695,23 +709,29 @@ public class MapFragment extends DBAccessFragmentBase
 		Collections.sort(mStationList, Station.getDistanceComparator());
 		mCellAdapter.notifyDataSetChanged();
 		mNextUpdateTime = SystemClock.uptimeMillis();
+		popupInfoWindow(false);
 		loadStations(false);
 	}
 
-	private void popupInfoWindow() {
+	private void popupInfoWindow(boolean animation) {
 		if(mPopupStationCode != 0) {
 			StationItem item = mStationItems.get(mPopupStationCode);
 			if(item != null) {
-				mMapView.getMap().animateCamera(CameraUpdateFactory.newLatLng(item.getStation().getLatLng()), mInfoWindowAnimationDuration, null);
-				item.getMarker().showInfoWindow();
+				if(item.getStation().isReadyToCreateSubtitle()) {
+					if(animation) {
+						mMapView.getMap().animateCamera(CameraUpdateFactory.newLatLng(item.getStation().getLatLng()), mInfoWindowAnimationDuration, null);
+					}
+					item.getMarker().showInfoWindow();
+				} else {
+					long sequence = callDatabase(Database.MethodName.LOAD_LINES, item.getStation());
+					if(animation) {
+						mPopupCallSequence = sequence;
+					}
+				}
 			} else {
 				mPopupStationCode = 0;
 			}
 		}
-	}
-
-	private void loadStationSubtitle(Station station) {
-		callDatabase(Database.MethodName.LOAD_LINES, station);
 	}
 
 	private void doSearch() {
@@ -739,10 +759,10 @@ public class MapFragment extends DBAccessFragmentBase
 	public void onGeocoderError(int reason) {
 		int id;
 		switch(reason) {
-		case GeocoderDialogUtil.REQUEST_DENIED:
+		case Geocoder.REQUEST_DENIED:
 			id = R.string.search_request_denied;
 			break;
-		case GeocoderDialogUtil.NETWORK_ERROR:
+		case Geocoder.NETWORK_ERROR:
 			id = R.string.search_network_error;
 			break;
 		default:
@@ -758,4 +778,29 @@ public class MapFragment extends DBAccessFragmentBase
 		mGeocoder = null;
 	}
 
+	private Animation createFadeInAnimation() {
+		Animation animation = AnimationUtils.loadAnimation(getActivity(), R.anim.map_controls_fade_in);
+		animation.setAnimationListener(new AnimationListener() {
+			@Override
+			public void onAnimationEnd(Animation animation) { --mNumFadeInAnimation; }
+			@Override
+			public void onAnimationRepeat(Animation animation) {}
+			@Override
+			public void onAnimationStart(Animation animation) { ++mNumFadeInAnimation; }
+		});
+		return animation;
+	}
+	private Animation createFadeOutAnimation() {
+		Animation animation = AnimationUtils.loadAnimation(getActivity(), R.anim.map_controls_fade_out);
+		animation.setAnimationListener(new AnimationListener() {
+			@Override
+			public void onAnimationEnd(Animation animation) { --mNumFadeOutAnimation; }
+			@Override
+			public void onAnimationRepeat(Animation animation) {}
+			@Override
+			public void onAnimationStart(Animation animation) { ++mNumFadeOutAnimation; }
+		});
+		return animation;
+	}
+	
 }

@@ -44,7 +44,6 @@ public class SyncFragment extends DBAccessFragmentBase
 	private Button mLoginButton;
 	private Button mStartSyncButton;
 	private WebView mWebView;
-	private SyncWebViewClient mWebViewClient;
 
 	private String mUserName;
 	private Date mRecentTime;
@@ -106,10 +105,9 @@ public class SyncFragment extends DBAccessFragmentBase
 		mLoginButton = (Button)view.findViewById(R.id.button_logout);
 		mLoginButton.setOnClickListener(this);
 
-		mWebViewClient = new SyncWebViewClient(this);
 		mWebView = (WebView)view.findViewById(R.id.web_view);
 		mWebView.getSettings().setJavaScriptEnabled(true);
-		mWebView.setWebViewClient(mWebViewClient);
+		mWebView.setWebViewClient(new SyncWebViewClient(this));
 		mWebView.getSettings().setCacheMode(WebSettings.LOAD_NO_CACHE);
 
 		if(syncUrl == null) {
@@ -361,20 +359,20 @@ public class SyncFragment extends DBAccessFragmentBase
 		}
 		@Override
 		public void onSuccess(String content) {
-			SyncFragment self = mFragment.get();
-			if(self == null) {
+			SyncFragment fragment = mFragment.get();
+			if(fragment == null) {
 				return;
 			} else if(mClient.getLogin()) {
-				self.onGotUserName(content);
+				fragment.onGotUserName(content);
 			} else {
-				self.onFailureUserName(false);
+				fragment.onFailureUserName(false);
 			}
 		}
 		@Override
 		public void onFailure(Throwable e, String content) {
-			SyncFragment self = mFragment.get();
-			if(self != null) {
-				self.onFailureUserName(true);
+			SyncFragment fragment = mFragment.get();
+			if(fragment != null) {
+				fragment.onFailureUserName(true);
 			}
 		}
 	}
