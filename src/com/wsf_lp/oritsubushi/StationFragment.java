@@ -14,6 +14,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.View.OnClickListener;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.TextView;
 
@@ -46,7 +48,7 @@ public class StationFragment extends DBAccessFragmentBase {
 		fragment.setArguments(bundle);
 		FragmentTransaction transaction = manager.beginTransaction();
 		if(useScaleAnimation) {
-			transaction.setCustomAnimations(R.anim.station_in, R.anim.none, R.anim.none, R.anim.station_out);
+			transaction.setCustomAnimations(R.anim.station_in, 0, 0, R.anim.station_out);
 		} else {
 			transaction.setCustomAnimations(R.anim.slide_in_right, R.anim.slide_out_left, R.anim.slide_in_left, R.anim.slide_out_right);
 		}

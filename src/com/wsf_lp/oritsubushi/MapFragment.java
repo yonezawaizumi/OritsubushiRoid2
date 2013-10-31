@@ -254,6 +254,7 @@ public class MapFragment extends DBAccessFragmentBase
 	public void onPause() {
 		super.onPause();
 		if(mGPSIsEnabled) {
+			mMapView.setVisibility(View.INVISIBLE);
 			mMapView.onPause();
 		}
 	}
