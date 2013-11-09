@@ -55,6 +55,8 @@ public class CompletionDateGroupFragment extends GroupFragmentBase {
 		}
 	}
 
+	private boolean mInitialized;
+
 	@Override
 	protected int getPanelCount() {
 		return PANEL_COUNT;
@@ -69,10 +71,21 @@ public class CompletionDateGroupFragment extends GroupFragmentBase {
 	protected void onClickMapFilterButton(int panelIndex) {
 	}
 
-	//常にリセットしないと、アクティビティが存在しない間にDB更新されたとき矛盾表示の恐れ
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		mInitialized = false;
+		super.onCreate(savedInstanceState);
+	}
+
+	//連続していない動作の場合は常にリセットしないと、DB更新されたとき矛盾表示の恐れ
 	@Override
 	protected boolean restoreInstance(final Bundle savedInstanceState) {
-		return false;
+		if(mInitialized) {
+			return super.restoreInstance(savedInstanceState);
+		} else {
+			mInitialized = true;
+			return false;
+		}
 	}
 
 	@Override

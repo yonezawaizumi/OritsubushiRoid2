@@ -114,7 +114,7 @@ public class StationFragment extends DBAccessFragmentBase {
 		}
 		loadStation();
 	}
-	
+
 	@Override
 	public void onStart() {
 		super.onStart();
@@ -132,12 +132,12 @@ public class StationFragment extends DBAccessFragmentBase {
 		super.onStop();
 		((MainActivity)getActivity()).enableUpButton(false);
 	}
-	
+
 	@Override
 	public void onDestroyView() {
 		super.onDestroyView();
 	}
-	
+
 	@Override
 	protected void onDatabaseConnected(boolean isEnabled, boolean forceReload, List<Station> updatedStations) {
 		//TODO:パラメータ使え

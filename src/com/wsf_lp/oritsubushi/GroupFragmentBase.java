@@ -43,6 +43,7 @@ public abstract class GroupFragmentBase extends DBAccessFragmentBase implements 
 		public long mRecentHeaderRequestLimit = Long.MAX_VALUE;
 	}
 	private Panel[] mPanels;
+	private boolean mNoRequested;
 
 	//for retain fragment
 	private int mCurrentPanelIndex;
@@ -57,6 +58,7 @@ public abstract class GroupFragmentBase extends DBAccessFragmentBase implements 
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
+		mNoRequested = true;
 		super.onCreate(savedInstanceState);
 		int panelCount = getPanelCount();
 		mPanels = new Panel[panelCount];
@@ -132,13 +134,10 @@ public abstract class GroupFragmentBase extends DBAccessFragmentBase implements 
 			mCurrentPanelIndex = displayedChild;
 			for(int index = displayedChild; index >= 0; --index) {
 				mPanels[index].mHeaderGroup = (Group)parcelableArray[index];
-				if(isDatabaseEnabled()) {
-					reloadHeaderGroup(index);
-					loadGroupInternal(index);
-				}
 			}
+			initializeFirst();
 		}
-		
+
 		mFlipper.setInAnimation(null);
 		mFlipper.setOutAnimation(null);
 		mFlipper.setDisplayedChild(getCurrentPanelIndex());
@@ -146,11 +145,24 @@ public abstract class GroupFragmentBase extends DBAccessFragmentBase implements 
 		//return false;
 	}
 
+	private void initializeFirst() {
+		if(mNoRequested && isDatabaseEnabled()) {
+			mNoRequested = false;
+			if(mPanels[0].mHeaderGroup == null) {
+				mPanels[0].mHeaderGroup = createDefaultTopHeaderGroup();
+			}
+			for(int index = 0; index <= mCurrentPanelIndex; ++index) {
+				reloadHeaderGroup(index);
+				loadGroupInternal(index);
+			}
+		}
+	}
+
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
 		if(!restoreInstance(savedInstanceState)) {
-			mPanels[0].mHeaderGroup = createDefaultTopHeaderGroup();
+			initializeFirst();
 		}
 		for(int index = 0; index <= mCurrentPanelIndex; ++index) {
 			Panel panel = mPanels[index];
@@ -161,7 +173,7 @@ public abstract class GroupFragmentBase extends DBAccessFragmentBase implements 
 		}
 		updateAllTexts();
 	}
-	
+
 	@Override
 	public void onResume() {
 		super.onResume();
@@ -258,7 +270,7 @@ public abstract class GroupFragmentBase extends DBAccessFragmentBase implements 
 		}
 		loadGroup(panelIndex);
 	}
-	
+
 	protected void reset() {
 		mCurrentPanelIndex = 0;
 		if(mFlipper != null) {
@@ -271,7 +283,7 @@ public abstract class GroupFragmentBase extends DBAccessFragmentBase implements 
 
 	/* must be override */
 	protected void updateText(int panelIndex) {
-		if(!isAlive()) {
+		if(!isAlive() || mPanels[0].mHeaderGroup == null) {
 			return;
 		}
 		Resources resources = getResources();
@@ -338,10 +350,7 @@ public abstract class GroupFragmentBase extends DBAccessFragmentBase implements 
 	@Override
 	protected void onDatabaseConnected(boolean isEnabled, boolean forceReload, List<Station> updatedStations) {
 		if(isEnabled) {
-			for(int index = getCurrentPanelIndex(); index >= 0; --index) {
-				reloadHeaderGroup(index);
-				loadGroupInternal(index);
-			}
+			initializeFirst();
 		}
 	}
 
@@ -357,5 +366,5 @@ public abstract class GroupFragmentBase extends DBAccessFragmentBase implements 
 			mPanels[panelIndex].mCellAdapter.notifyDataSetChanged();
 		}
 	}
-	
+
 }
