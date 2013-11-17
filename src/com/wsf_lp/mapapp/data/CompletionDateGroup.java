@@ -117,7 +117,14 @@ public class CompletionDateGroup extends Group implements Parcelable {
 
 	@Override
 	public Drawable getStatusIcon(Resources resource) {
-		return getCode() > 0 ? super.getStatusIcon(resource) : resource.getDrawable(R.drawable.statusicon_incomp);
+		//return getCode() > 0 ? super.getStatusIcon(resource) : resource.getDrawable(R.drawable.statusicon_incomp);
+		if(getTotal() <= 0) {
+			return resource.getDrawable(R.drawable.statusicon_notload);
+		} else if(getCode() > 0) {
+			return resource.getDrawable(R.drawable.statusicon_comp);
+		} else {
+			return resource.getDrawable(R.drawable.statusicon_incomp);
+		}
 	}
 
 	public CompletionDateGroup(Parcel source) {

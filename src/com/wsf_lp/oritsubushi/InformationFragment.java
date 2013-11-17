@@ -89,18 +89,25 @@ public class InformationFragment extends MenuableFragmentBase {
 	String mUrl;
 	String mContent;
 	String mContentType;
-	boolean mIsLoading;
-
+	int mLoadingState;
+	private static final int NOT_INITIALIZED = 0;
+	private static final int LOADING = 1;
+	private static final int LOADED_BG = 2;
+	private static final int LOADED = 3;
+	
+	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		mUrl = getString(R.string.information_url);
+		mLoadingState = NOT_INITIALIZED;
 		load();
 	}
 
 	private void setContent() {
 		if(mContent != null) {
 			mWebView.loadDataWithBaseURL(mUrl, mContent, mContentType, "UTF-8", null);
+			mLoadingState = LOADED;
 		}
 	}
 	
@@ -112,12 +119,14 @@ public class InformationFragment extends MenuableFragmentBase {
 	}
 
 	private void onLoadFinish(String content, String contentType) {
-		this.mContent = content;
-		this.mContentType = contentType;
+		mContent = content;
+		mContentType = contentType;
 		if(mWebView != null) {
-			mIsLoading = false;
+			mLoadingState = LOADED;
 			mReloadButton.setEnabled(true);
 			setContent();
+		} else {
+			mLoadingState = LOADED_BG;
 		}
 	}
 
@@ -130,8 +139,8 @@ public class InformationFragment extends MenuableFragmentBase {
 	}
 
 	private void load() {
-		if(!mIsLoading) {
-			mIsLoading = true;
+		if(mLoadingState != LOADING) {
+			mLoadingState = LOADING;
 			mHttpClient.get(mUrl, new HttpResponseHandler(this));
 			if(mWrapper != null) {
 				mWrapper.startAnimation(AnimationUtils.loadAnimation(getActivity(), R.anim.wrapper_fade_in));
@@ -149,7 +158,7 @@ public class InformationFragment extends MenuableFragmentBase {
 		mReloadButton.setEnabled(false);
 		mWebView = (WebView)view.findViewById(R.id.web_view);
 		mWrapper = view.findViewById(R.id.wrapper);
-		mWrapper.setVisibility(mIsLoading ? View.VISIBLE : View.GONE);
+		mWrapper.setVisibility(mLoadingState == LOADING ? View.VISIBLE : View.GONE);
 		mReloadButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
@@ -164,12 +173,26 @@ public class InformationFragment extends MenuableFragmentBase {
 	}
 
 	@Override
-	public void onResume() {
-		if(!mIsLoading) {
-			mReloadButton.setEnabled(true);
-			setContent();
+	public void onActivityCreated(Bundle savedInstanceState) {
+		super.onActivityCreated(savedInstanceState);
+		if(mLoadingState == LOADED) {
+			mWebView.restoreState(savedInstanceState);
 		}
+	}
+	
+	@Override
+	public void onResume() {
+		setContent();
+		mReloadButton.setEnabled(mLoadingState == LOADED);
 		super.onResume();
+	}
+
+	@Override
+	public void onSaveInstanceState(Bundle outState) {
+		super.onSaveInstanceState(outState);
+		if(mWebView != null) {
+			mWebView.saveState(outState);
+		}
 	}
 
 	@Override
@@ -181,7 +204,7 @@ public class InformationFragment extends MenuableFragmentBase {
 
 	@Override
 	public void onDestroy() {
-		if(mIsLoading) {
+		if(mLoadingState == LOADING) {
 			mHttpClient.cancelRequests(getActivity(), true);
 		}
 		super.onDestroy();

@@ -23,7 +23,6 @@ import com.wsf_lp.oritsubushi.R;
 import com.wsf_lp.oritsubushi.PreferenceKey;
 import com.wsf_lp.utils.MethodUtil;
 
-import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -268,7 +267,6 @@ public class DatabaseService extends Service
 	public void onProgress(int percentile) {
 		if(percentile == 0) {
 			final String statusText = getString(R.string.notification_database_initializing, percentile);
-			//initializingNotification = new Notification(R.drawable.notification, statusText, System.currentTimeMillis());
 			initializingPendingIntent = PendingIntent.getActivity(this, 0, new Intent(this, MainActivity.class), PendingIntent.FLAG_CANCEL_CURRENT);
 			NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext())
 				.setSmallIcon(R.drawable.notification)
@@ -276,29 +274,25 @@ public class DatabaseService extends Service
 				.setContentTitle(getString(R.string.app_name))
 				.setContentText(statusText)
 				.setWhen(System.currentTimeMillis())
-				.setDefaults(Notification.FLAG_NO_CLEAR)
+				//.setDefaults(Notification.FLAG_NO_CLEAR)
 				.setAutoCancel(false)
 				.setOngoing(true)
 				.setContentIntent(initializingPendingIntent);
-			//initializingNotification.setLatestEventInfo(this, , statusText, initializingPendingIntent);
-			//initializingNotification = builder.build();
 			startForeground(NOTIFICATION_ID_INITIALIZE, builder.build());
 		} else if(percentile < 0) {
 			stopForeground(true);
-			//initializingNotification = null;
 			initializingPendingIntent = null;
 		} else if(percentile > previousDatabaseInitializingPercentile) {
 			previousDatabaseInitializingPercentile = percentile;
 			final String statusText = getString(R.string.notification_database_initializing, percentile);
 			final NotificationManager manager = (NotificationManager)this.getSystemService(Service.NOTIFICATION_SERVICE);
-			//initializingNotification.setLatestEventInfo(DatabaseService.this, getString(R.string.app_name), statusText, initializingPendingIntent);
 			NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext())
 				.setSmallIcon(R.drawable.notification)
 				.setTicker(statusText)
 				.setContentTitle(getString(R.string.app_name))
 				.setContentText(statusText)
 				.setWhen(System.currentTimeMillis())
-				.setDefaults(Notification.FLAG_NO_CLEAR)
+				//.setDefaults(Notification.FLAG_NO_CLEAR)
 				.setAutoCancel(false)
 				.setOngoing(true)
 				.setContentIntent(initializingPendingIntent);
@@ -356,24 +350,21 @@ public class DatabaseService extends Service
 	private void startSyncNotification() {
 		isSyncing.set(true);
 		final String statusText = getString(R.string.sync_preparing);
-		//syncingNotification = new Notification(R.drawable.notification, statusText, System.currentTimeMillis());
-		//syncingNotification.flags = Notification.FLAG_ONGOING_EVENT | Notification.FLAG_NO_CLEAR;
 		syncingPendingIntent = PendingIntent.getActivity(this, 0, new Intent(this, MainActivity.class), PendingIntent.FLAG_CANCEL_CURRENT);
-		//syncingNotification.setLatestEventInfo(this, getString(R.string.app_name), statusText, syncingPendingIntent);
 		NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext())
 			.setSmallIcon(R.drawable.notification)
 			.setTicker(statusText)
 			.setContentTitle(getString(R.string.app_name))
 			.setContentText(statusText)
 			.setWhen(System.currentTimeMillis())
-			.setDefaults(Notification.FLAG_ONGOING_EVENT | Notification.FLAG_NO_CLEAR)
+			//.setDefaults(Notification.FLAG_ONGOING_EVENT | Notification.FLAG_NO_CLEAR)
+			.setOngoing(true)
 			.setAutoCancel(false)
 			.setContentIntent(syncingPendingIntent);
 		startForeground(NOTIFICATION_ID_SYNC, builder.build());
 	}
 
 	private void updateSyncingNotification(int id) {
-		//syncingNotification.setLatestEventInfo(DatabaseService.this, getString(R.string.app_name), getString(id), syncingPendingIntent);
 		String statusText = getString(id);
 		NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext())
 			.setSmallIcon(R.drawable.notification)
@@ -381,7 +372,7 @@ public class DatabaseService extends Service
 			.setContentTitle(getString(R.string.app_name))
 			.setContentText(statusText)
 			.setWhen(System.currentTimeMillis())
-			.setDefaults(Notification.FLAG_NO_CLEAR)
+			//.setDefaults(Notification.FLAG_NO_CLEAR)
 			.setAutoCancel(false)
 			.setOngoing(true)
 			.setContentIntent(syncingPendingIntent);
@@ -399,12 +390,7 @@ public class DatabaseService extends Service
 			.setWhen(System.currentTimeMillis())
 			.setAutoCancel(true)
 			.setContentIntent(syncingPendingIntent);
-		//syncingNotification = new Notification(R.drawable.notification, statusText, System.currentTimeMillis());
-		//syncingNotification.flags = Notification.FLAG_AUTO_CANCEL;
-		//syncingPendingIntent = PendingIntent.getActivity(this, 0, new Intent(this, SyncActivity.class), PendingIntent.FLAG_CANCEL_CURRENT);
-		//syncingNotification.setLatestEventInfo(this, getString(R.string.app_name), statusText, syncingPendingIntent);
 		((NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE)).notify(NOTIFICATION_ID_SYNC, builder.build());
-		//syncingNotification = null;
 		syncingPendingIntent = null;
 		sendBroadcast(new OritsubushiNotificationIntent().setSyncFinish(id));
 		isSyncing.set(false);
