@@ -4,6 +4,7 @@ import java.util.Date;
 import java.util.List;
 
 import android.content.Intent;
+import android.content.res.Resources;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -25,18 +26,19 @@ public class StationFragment extends DBAccessFragmentBase {
 
 	public static final String STATE_STATION = "station";
 
-	private TextView title;
-	private TextView yomi;
-	private TextView lines;
-	private TextView address;
-	private TextView completionDate;
-	private TextView memo;
-	private Button editDate;
-	private Button completionOnToday;
-	private Button editMemo;
+	private TextView mTitle;
+	private TextView mYomi;
+	private TextView mLines;
+	private TextView mAddress;
+	private TextView mCompletionDate;
+	private TextView mMemo;
+	private TextView mUpdatedDate;
+	private Button mEditDate;
+	private Button mCompletionOnToday;
+	private Button mEditMemo;
 
-	private Station station;
-	public Station getStation() { return station; }
+	private Station mStation;
+	public Station getStation() { return mStation; }
 
 	public static void show(Fragment currentFragment, Station station, boolean useScaleAnimation) {
 		FragmentManager manager = ((FragmentActivity)currentFragment.getActivity()).getSupportFragmentManager();
@@ -58,29 +60,30 @@ public class StationFragment extends DBAccessFragmentBase {
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		View view = inflater.inflate(R.layout.verbose, container, false);
-		title = (TextView)view.findViewById(R.id.verbose_title);
-		yomi = (TextView)view.findViewById(R.id.verbose_yomi);
-		lines = (TextView)view.findViewById(R.id.verbose_lines);
-		address = (TextView)view.findViewById(R.id.verbose_address);
-		completionDate = (TextView)view.findViewById(R.id.verbose_comp_date);
-		memo = (TextView)view.findViewById(R.id.verbose_memo);
-		editDate = (Button)view.findViewById(R.id.verbose_button_edit_date);
-		completionOnToday = (Button)view.findViewById(R.id.verbose_button_comp_today);
-		editMemo = (Button)view.findViewById(R.id.verbose_button_edit_memo);
+		mTitle = (TextView)view.findViewById(R.id.verbose_title);
+		mYomi = (TextView)view.findViewById(R.id.verbose_yomi);
+		mLines = (TextView)view.findViewById(R.id.verbose_lines);
+		mAddress = (TextView)view.findViewById(R.id.verbose_address);
+		mCompletionDate = (TextView)view.findViewById(R.id.verbose_comp_date);
+		mMemo = (TextView)view.findViewById(R.id.verbose_memo);
+		mUpdatedDate = (TextView)view.findViewById(R.id.verbose_updated_date);
+		mEditDate = (Button)view.findViewById(R.id.verbose_button_edit_date);
+		mCompletionOnToday = (Button)view.findViewById(R.id.verbose_button_comp_today);
+		mEditMemo = (Button)view.findViewById(R.id.verbose_button_edit_memo);
 
-		editDate.setOnClickListener(new OnClickListener() {
+		mEditDate.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
 				EditDateDialogFragment.newInstance(StationFragment.this).show(getFragmentManager(), EditDateDialogFragment.class.getCanonicalName());
 			}
 		});
-		completionOnToday.setOnClickListener(new OnClickListener() {
+		mCompletionOnToday.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
 				updateCompletionDate(Station.calcCompletionDateInt(new Date()));
 			}
 		});
-		editMemo.setOnClickListener(new OnClickListener() {
+		mEditMemo.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
 				EditMemoDialogFragment.newInstance(StationFragment.this).show(getChildFragmentManager(), EditMemoDialogFragment.class.getCanonicalName());
@@ -89,14 +92,14 @@ public class StationFragment extends DBAccessFragmentBase {
 		view.findViewById(R.id.verbose_button_wikipedia).setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://ja.m.wikipedia.org/wiki/" + Uri.encode(station.getWiki()))));
+				startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://ja.m.wikipedia.org/wiki/" + Uri.encode(mStation.getWiki()))));
 			}
 		});
 		view.findViewById(R.id.verbose_button_move_to).setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
 				//直接ブロードキャストしないでこれ呼ばないとMapFragmentインスタンスないときに困る
-				MapFragment.moveTo(getActivity(), station);
+				MapFragment.moveTo(getActivity(), mStation);
 			}
 		});
 
@@ -106,11 +109,11 @@ public class StationFragment extends DBAccessFragmentBase {
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
-		if(station == null && savedInstanceState != null) {
-			station = savedInstanceState.getParcelable(STATE_STATION);
+		if(mStation == null && savedInstanceState != null) {
+			mStation = savedInstanceState.getParcelable(STATE_STATION);
 		}
-		if(station == null) {
-			station = getArguments().getParcelable(STATE_STATION);
+		if(mStation == null) {
+			mStation = getArguments().getParcelable(STATE_STATION);
 		}
 		loadStation();
 	}
@@ -124,7 +127,7 @@ public class StationFragment extends DBAccessFragmentBase {
 	@Override
 	public void onSaveInstanceState(Bundle outState) {
 		super.onSaveInstanceState(outState);
-		outState.putParcelable(STATE_STATION, station);
+		outState.putParcelable(STATE_STATION, mStation);
 	}
 
 	@Override
@@ -136,15 +139,25 @@ public class StationFragment extends DBAccessFragmentBase {
 	@Override
 	public void onDestroyView() {
 		super.onDestroyView();
+		mTitle = null;
+		mYomi = null;
+		mLines = null;
+		mAddress = null;
+		mCompletionDate = null;
+		mMemo = null;
+		mUpdatedDate = null;
+		mEditDate = null;
+		mCompletionOnToday = null;
+		mEditMemo = null;
 	}
 
 	@Override
 	protected void onDatabaseConnected(boolean isEnabled, boolean forceReload, List<Station> updatedStations) {
 		//TODO:パラメータ使え
-		if(station == null/* || forceReload || updateStations.find(station)*/) {
-			station = (Station)getArguments().getParcelable(STATE_STATION);
+		if(mStation == null/* || forceReload || updateStations.find(station)*/) {
+			mStation = (Station)getArguments().getParcelable(STATE_STATION);
 			if(isEnabled) {
-				callDatabase(Database.MethodName.RELOAD_STATION, station);
+				callDatabase(Database.MethodName.RELOAD_STATION, mStation);
 			}
 		} else {
 			loadStation();
@@ -154,8 +167,8 @@ public class StationFragment extends DBAccessFragmentBase {
 	@Override
 	public void onDatabaseDisconnected(boolean dummy) {
 		super.onDatabaseDisconnected();
-		editDate.setEnabled(false);
-		editMemo.setEnabled(false);
+		mEditDate.setEnabled(false);
+		mEditMemo.setEnabled(false);
 	}
 
 	@Override
@@ -165,52 +178,54 @@ public class StationFragment extends DBAccessFragmentBase {
 
 	@Override
 	protected void onDatabaseUpdated(boolean isFirst) {
-		callDatabase(Database.MethodName.RELOAD_STATION, station);
+		callDatabase(Database.MethodName.RELOAD_STATION, mStation);
 	}
 
 	@Override
 	protected void onStationUpdated(Station station) {
-		if(this.station.equals(station)) {
-			this.station = station;
+		if(mStation.equals(station)) {
+			mStation = station;
 			updateText();
 		}
 	}
 
 	protected void loadStation() {
-		if(!station.isReadyToCreateSubtitle() && isDatabaseEnabled()) {
-			callDatabase(Database.MethodName.LOAD_LINES, station);
+		if(!mStation.isReadyToCreateSubtitle() && isDatabaseEnabled()) {
+			callDatabase(Database.MethodName.LOAD_LINES, mStation);
 		}
 		updateText();
 	}
 
 	protected void updateText() {
-		if(!isAlive() || station.isExpired()) {
+		if(!isAlive() || mStation.isExpired() || mTitle == null) {
 			return;
 		}
-		title.setText(station.getTitle());
-		yomi.setText(station.getYomi());
-		lines.setText(station.getSubtitle());
-		address.setText(Prefs.getValue(station.getPref(), getResources()) + station.getAddress());
-		completionDate.setText(station.getCompletionDateString(getResources()));
-		memo.setText(station.getMemo());
-		completionOnToday.setEnabled(!station.isCompleted());
-		boolean enableEdit = station.isReadyToCreateSubtitle();
-		editDate.setEnabled(enableEdit);
-		editMemo.setEnabled(enableEdit);
+		Resources resources = getResources();
+		mTitle.setText(mStation.getTitle());
+		mYomi.setText(mStation.getYomi());
+		mLines.setText(mStation.getSubtitle());
+		mAddress.setText(Prefs.getValue(mStation.getPref(), resources) + mStation.getAddress());
+		mCompletionDate.setText(mStation.getCompletionDateString(getResources()));
+		mMemo.setText(mStation.getMemo());
+		mUpdatedDate.setText(mStation.getUpdatedDate(resources));
+		mCompletionOnToday.setEnabled(!mStation.isCompleted());
+		boolean enableEdit = mStation.isReadyToCreateSubtitle();
+		mEditDate.setEnabled(enableEdit);
+		mEditMemo.setEnabled(enableEdit);
 	}
 
 	public void updateCompletionDate(int newDate) {
-		if(station.getCompletionDate() != newDate) {
-			station.setCompletionDate(newDate);
-			callDatabase(Database.MethodName.UPDATE_COMPLETION, station);
+		if(mStation.getCompletionDate() != newDate) {
+			mStation.setCompletionDate(newDate);
+			callDatabase(Database.MethodName.UPDATE_COMPLETION, mStation);
 			updateText();
 		}
 	}
 
 	public void updateMemo(String newMemo) {
-		if(!station.getMemo().equals(newMemo)) {
-			station.setMemo(newMemo);
-			callDatabase(Database.MethodName.UPDATE_MEMO, station);
+		if(!mStation.getMemo().equals(newMemo)) {
+			mStation.setMemo(newMemo);
+			callDatabase(Database.MethodName.UPDATE_MEMO, mStation);
 			updateText();
 		}
 	}

@@ -36,6 +36,7 @@
     <string name="verbose_header_date">乗下車日</string>
     <string name="verbose_header_memo">メモ</string>
     <string name="verbose_header_misc">操作</string>
+    <string name="verbose_header_advanced">データ最終更新日時</string>
     <string name="verbose_button_edit_date">変更</string>
     <string name="verbose_button_comp_today">今日</string>
     <string name="verbose_button_edit_memo">編集</string>

@@ -461,7 +461,7 @@ public class Database {
 	    builder.append(word);
 	    filterSqlCondition = builder.toString();
 	    builder.setLength(0);
-	    builder.append("SELECT stations.*, completions.comp_date, completions.memo, "
+	    builder.append("SELECT stations.*, completions.comp_date, completions.memo, completions.update_date "
                 + "(lat - ?1) * (lat - ?1) + (lng - ?2) * (lng - ?2) AS distance FROM ");
 	    builder.append(tablesForFilterCondition);
 	    builder.append(" WHERE stations.lat >= ?3 AND stations.lat < ?4 AND stations.lng >= ?5 AND stations.lng < ?6 AND ");
@@ -507,7 +507,7 @@ public class Database {
 	//Android サービス接続ぶつ切れ対策
 	public Station reloadStation(Station station) {
 		final String[] param = new String[] { Integer.toString(station.getCode()) };
-		Cursor cursor = sqlite.rawQuery("SELECT stations.*, completions.comp_date, completions.memo "
+		Cursor cursor = sqlite.rawQuery("SELECT stations.*, completions.comp_date, completions.memo, completions.update_date "
 				+ "FROM stations completions "
 				+ "WHERE stations.enabled = 1 AND completions.s_id = stations.s_id ", param);
 		if(cursor.moveToNext()) {
@@ -549,10 +549,12 @@ public class Database {
 			}
 			ContentValues values = new ContentValues(2);
 			values.put("comp_date", station.getCompletionDate());
-			values.put("update_date", (int)(System.currentTimeMillis() / 1000));
+			long updatedDate = System.currentTimeMillis() / 1000;	//for V2.2
+			values.put("update_date", (int)updatedDate);
 			if(sqlite.update("completions",  values,  "s_id = ?",  param) == 1) {
 				sqlite.setTransactionSuccessful();
 				Log.d("database", "completion updated");
+				station.setUpdatedDate(updatedDate * 1000);	//for V2.2
 				if((recent != 0) != (station.getCompletionDate() != 0)) {
 					clearOperatorStatisticsCache(station);
 					Log.d("database", "broadcast updating");
@@ -819,7 +821,7 @@ public class Database {
 
 	public List<Station> getStationsByLine(Integer lineCode) {
 		final String[] param = new String[] { lineCode.toString() };
-		Cursor cursor = sqlite.rawQuery("SELECT stations.*, completions.comp_date, completions.memo "
+		Cursor cursor = sqlite.rawQuery("SELECT stations.*, completions.comp_date, completions.memo, completions.update_date "
 				+ "FROM stations, stations_lines, completions "
 				+ "WHERE stations_lines.l_id = ? AND stations.s_id = stations_lines.s_id AND stations.enabled = 1 AND completions.s_id = stations.s_id "
 				+ "ORDER BY stations_lines.s_sort", param);
@@ -867,7 +869,7 @@ public class Database {
 
 	public List<Station> getStationsByPref(Integer prefCode) {
 		final String[] param = new String[] { prefCode.toString() };
-		Cursor cursor = sqlite.rawQuery("SELECT stations.*, completions.comp_date, completions.memo "
+		Cursor cursor = sqlite.rawQuery("SELECT stations.*, completions.comp_date, completions.memo, completions.update_date "
 				+ "FROM stations, completions "
 				+ "WHERE stations.pref = ? AND stations.enabled = 1 AND completions.s_id = stations.s_id ORDER BY stations.address", param);
 		ArrayList<Station> newStations = new ArrayList<Station>(cursor.getCount());
@@ -968,7 +970,7 @@ public class Database {
 
 	public List<Station> getStationsByYomi(String yomi2) {
 		final String[] param = new String[]{ yomi2 };
-		Cursor cursor = sqlite.rawQuery("SELECT stations.*, completions.comp_date, completions.memo "
+		Cursor cursor = sqlite.rawQuery("SELECT stations.*, completions.comp_date, completions.memo, completions.update_date "
 				+ "FROM stations, completions "
 				+ "WHERE SUBSTR(stations.yomi, 1, 2) = ? AND stations.enabled = 1 AND completions.s_id = stations.s_id "
 				+ "ORDER BY stations.address", param);
@@ -1135,7 +1137,7 @@ public class Database {
 			compDate *= 100;
 		}
 		final String[] param = new String[]{ Integer.toString(compDate) };
-		Cursor cursor = sqlite.rawQuery("SELECT stations.*, completions.comp_date, completions.memo "
+		Cursor cursor = sqlite.rawQuery("SELECT stations.*, completions.comp_date, completions.memo, completions.update_date "
 				+ "FROM stations, completions "
 				+ "WHERE completions.comp_date = ? AND stations.enabled = 1 AND completions.s_id = stations.s_id "
 				+ "ORDER BY stations.s_id", param);

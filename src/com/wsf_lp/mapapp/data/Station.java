@@ -1,9 +1,12 @@
 package com.wsf_lp.mapapp.data;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.Locale;
+import java.util.TimeZone;
 
 import com.wsf_lp.oritsubushi.R;
 
@@ -21,6 +24,8 @@ public class Station implements Parcelable, CellItem {
 	public static final int UNANBIGUOUS_YEAR = 1;
 	public static final int UNANBIGUOUS_MONTH = 0;
 	public static final int UNANBIGUOUS_DAY = 0;
+	
+	private static SimpleDateFormat dateFormatter;
 
 	private int code;
 	private int lat1E6;
@@ -40,7 +45,9 @@ public class Station implements Parcelable, CellItem {
 
 	private int completionDate;
 	private String memo;
-
+	//V2.2
+	private long updatedDate;
+	
 	public Station() {
 		lines = new ArrayList<Line>();
 	}
@@ -61,6 +68,7 @@ public class Station implements Parcelable, CellItem {
 		lines = (ArrayList<Line>)src.lines.clone();
 		completionDate = src.completionDate;
 		memo = src.memo;
+		updatedDate = src.updatedDate;
 	}
 
 	@Override
@@ -223,6 +231,7 @@ public class Station implements Parcelable, CellItem {
 		setOperator(operators.get(operator));
 		setCompletionDate(cursor.getInt(completionDateIndex));
 		setMemo(cursor.getString(memoIndex));
+		setUpdatedDate(cursor.getInt(updatedDateIndex) * 1000L);
     }
 
 	public Drawable getMarker(Resources resources) {
@@ -278,10 +287,12 @@ public class Station implements Parcelable, CellItem {
 	// calls from Database Worker Thread only
 	private static int completionDateIndex = -1;
 	private static int memoIndex;
+	private static int updatedDateIndex;
 
 	private void initializeIndexes(Cursor cursor) {
 		completionDateIndex = cursor.getColumnIndex("comp_date");
 		memoIndex = cursor.getColumnIndex("memo");
+		updatedDateIndex = cursor.getColumnIndex("update_date");
 	}
 
 	@Override
@@ -320,6 +331,7 @@ public class Station implements Parcelable, CellItem {
 		lines = source.createTypedArrayList(Line.CREATOR);
 		completionDate = source.readInt();
 		memo = source.readString();
+		updatedDate = source.readLong();
 	}
 
 	@Override
@@ -342,6 +354,7 @@ public class Station implements Parcelable, CellItem {
 		dest.writeTypedList(lines);
 		dest.writeInt(completionDate);
 		dest.writeString(memo);
+		dest.writeLong(updatedDate);
 	}
 
 	@Override
@@ -376,5 +389,23 @@ public class Station implements Parcelable, CellItem {
 			builder.append(", ");
 		}
 		return builder.substring(0, builder.length() - 2);
+	}
+	//for V2.2
+	public void setUpdatedDate(long updatedDate) {
+		this.updatedDate = updatedDate;
+	}
+	public String getUpdatedDate(Resources resources) {
+		if(updatedDate > 0) {
+			if(dateFormatter == null) {
+				initUpdatedDateFormat(resources);
+			}
+			return dateFormatter.format(new Date(updatedDate));
+		} else {
+			return resources.getString(R.string.station_updated_date_no_updated);
+		}
+	}
+	private static void initUpdatedDateFormat(Resources resources) {
+		dateFormatter = new SimpleDateFormat(resources.getString(R.string.station_updated_date_format), Locale.ENGLISH);
+		dateFormatter.setTimeZone(TimeZone.getTimeZone(resources.getString(R.string.station_updated_date_timezone)));
 	}
 }

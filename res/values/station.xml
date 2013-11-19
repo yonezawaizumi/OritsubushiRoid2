@@ -17,4 +17,7 @@
     <string name="station_group_description_format">%1$s : %2$s</string>
     <string name="station_group_yomi_description_format">%1$s : %2$s / %3$s</string>
     <string name="station_group_comp_date_description_format">%1$s / %2$s</string>
-    </resources>
+    <string name="station_updated_date_format">yyyy/MM/dd HH:mm:ss z</string>
+    <string name="station_updated_date_no_updated">一度も更新されていません</string>
+    <string name="station_updated_date_timezone">Asia/Tokyo</string>
+</resources>
