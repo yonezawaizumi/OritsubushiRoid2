@@ -461,7 +461,7 @@ public class Database {
 	    builder.append(word);
 	    filterSqlCondition = builder.toString();
 	    builder.setLength(0);
-	    builder.append("SELECT stations.*, completions.comp_date, completions.memo, completions.update_date "
+	    builder.append("SELECT stations.*, completions.comp_date, completions.memo, completions.update_date, "
                 + "(lat - ?1) * (lat - ?1) + (lng - ?2) * (lng - ?2) AS distance FROM ");
 	    builder.append(tablesForFilterCondition);
 	    builder.append(" WHERE stations.lat >= ?3 AND stations.lat < ?4 AND stations.lng >= ?5 AND stations.lng < ?6 AND ");
@@ -503,7 +503,7 @@ public class Database {
 		cursor.close();
 		return newStations;
 	}
-	
+
 	//Android サービス接続ぶつ切れ対策
 	public Station reloadStation(Station station) {
 		final String[] param = new String[] { Integer.toString(station.getCode()) };
