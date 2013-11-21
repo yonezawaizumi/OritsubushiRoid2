@@ -238,9 +238,9 @@
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:layout_margin="10dp"
-            android:text="Large Text"
+            android:text="2000/00/00 00:00:00 GMT+09:00"
             android:textAppearance="?android:attr/textAppearanceLarge"
-            android:textSize="14sp" />
+            android:textSize="18sp" />
     </LinearLayout>
 
 </ScrollView>
