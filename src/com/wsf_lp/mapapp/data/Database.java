@@ -1006,11 +1006,13 @@ public class Database {
 				yearStatisticsCache.add(group);
 			}
 			cursor.close();
-			final Group group = new CompletionDateGroup();
-			group.setCode(0);
-			group.setTotal(total);
-			group.setCompletions(total - comp);
-			yearStatisticsCache.add(group);
+			if(total - comp > 0) {
+				final Group group = new CompletionDateGroup();
+				group.setCode(0);
+				group.setTotal(total);
+				group.setCompletions(total - comp);
+				yearStatisticsCache.add(group);
+			}
 		//}
 		return new Pair<Group, List<Group>>(totalGroup, Collections.unmodifiableList(yearStatisticsCache));
 	}

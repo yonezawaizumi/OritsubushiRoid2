@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="search_types">
+        <item >地点</item>
+        <item >都道府県名</item>
+        <item >駅名</item>
+        <item >読み</item>
+        <item >路線</item>
+        <item >乗下車日</item>
+    </string-array>
+    <string-array name="search_conds">
+        <item >で始まる</item>
+        <item >を含む</item>
+    </string-array>
+    
+</resources>
