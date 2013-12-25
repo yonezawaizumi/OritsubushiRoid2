@@ -203,7 +203,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:padding="5dip"
-                android:visibility="visible" >
+                android:visibility="gone" >
 
                 <RadioButton
                     android:id="@+id/search_type_location"
@@ -290,7 +290,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:padding="5dip"
-                android:visibility="visible" >
+                android:visibility="gone" >
 
                 <RadioButton
                     android:id="@+id/search_cond_start"
