@@ -155,7 +155,7 @@
             android:paddingLeft="56dp"
             android:paddingRight="56dp"
             android:paddingTop="10dp" >
-            
+
             <EditText
                 android:id="@+id/text_search"
                 android:layout_width="fill_parent"
@@ -177,6 +177,7 @@
             </EditText>
 
             <RelativeLayout
+                android:id="@+id/filter_controls"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" >
 

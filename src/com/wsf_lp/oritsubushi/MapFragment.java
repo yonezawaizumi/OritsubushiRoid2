@@ -91,7 +91,7 @@ public class MapFragment extends DBAccessFragmentBase
 	private long mWaitMilliSec;
 	private int mInfoWindowAnimationDuration;
 	private View mVisualControlsContainer;
-	private View mFilterControls;
+	//private View mFilterControls;
 	private EditText mSearchEdit;
 	private RadioGroup mVisibilityTypeGroup;
 	private int mVisibilityType;
@@ -110,16 +110,16 @@ public class MapFragment extends DBAccessFragmentBase
 	private boolean mIsInitialized;
 	private int mNumFadeInAnimation;
 	private int mNumFadeOutAnimation;
-	//private View locationWrapper;
+	private View mLocationWrapper;
 	private Geocoder mGeocoder;
 
 	private boolean isAnimating() { return mNumFadeInAnimation > 0 || mNumFadeOutAnimation > 0; }
-	
+
 	@Override
 	protected IntentFilter getIntentFilter() {
 		return OritsubushiNotificationIntent.getMapIntentFilter();
 	}
-	
+
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -145,7 +145,7 @@ public class MapFragment extends DBAccessFragmentBase
 		mMapView = (MapView)contentView.findViewById(R.id.mapview);
 
 		mVisualControlsContainer = contentView.findViewById(R.id.visual_controls);
-		mFilterControls = contentView.findViewById(R.id.filter_controls);
+		//mFilterControls = contentView.findViewById(R.id.filter_controls);
 
 		mVisibilityTypeGroup = (RadioGroup)contentView.findViewById(R.id.radio_map_visibility);
 		mVisibilityTypeGroup.setOnCheckedChangeListener(this);
@@ -160,7 +160,7 @@ public class MapFragment extends DBAccessFragmentBase
 		mSearchEdit.setOnFocusChangeListener(this);
 		mSearchEdit.setOnEditorActionListener(this);
 
-		//locationWrapper = findViewById(R.id.location_wrapper);
+		mLocationWrapper = contentView.findViewById(R.id.location_wrapper);
 
 		mListView = (ListView)contentView.findViewById(R.id.map_list_view);
 		mCellAdapter = new CellAdapter(mStationList, getActivity());
@@ -210,7 +210,7 @@ public class MapFragment extends DBAccessFragmentBase
 			wrapper.setVisibility(View.GONE);
 			loadingWrapper.setVisibility(View.GONE);
 			mVisualControlsContainer.setVisibility(View.GONE);
-			mFilterControls.setVisibility(View.GONE);
+			mLocationWrapper.setVisibility(View.GONE);
 		}
 	}
 
@@ -301,7 +301,8 @@ public class MapFragment extends DBAccessFragmentBase
 		}
 		mMapView = null;
 		mVisualControlsContainer = null;
-		mFilterControls = null;
+		//mFilterControls = null;
+		mLocationWrapper = null;
 		mSearchEdit = null;
 		mVisibilityTypeGroup = null;
 		mStyleGroup = null;
@@ -419,7 +420,7 @@ public class MapFragment extends DBAccessFragmentBase
 			mMapView.getMap().animateCamera(CameraUpdateFactory.newLatLng(station.getLatLng()), mInfoWindowAnimationDuration, null);
 		}
 	}
-	
+
 	//直接ブロードキャストしないで外部からこれ呼んでください
 	public static void moveTo(Context context, Station station) {
 		context.sendBroadcast(new OritsubushiNotificationIntent().setMapMoveTo(station));
@@ -437,10 +438,10 @@ public class MapFragment extends DBAccessFragmentBase
 		mStyle = style;
 		if(style == Style.LIST) {
 			if(mListView.getVisibility() != View.VISIBLE) {
-				if(mFilterControls.getVisibility() == View.VISIBLE) {
-					mFilterControls.setVisibility(View.INVISIBLE);
+				if(mLocationWrapper.getVisibility() == View.VISIBLE) {
+					mLocationWrapper.setVisibility(View.INVISIBLE);
 					if(!forceInitialize) {
-						mFilterControls.startAnimation(createFadeOutAnimation());
+						mLocationWrapper.startAnimation(createFadeOutAnimation());
 					}
 				}
 				if(mVisualControlsContainer.getVisibility() == View.INVISIBLE) {
@@ -458,9 +459,9 @@ public class MapFragment extends DBAccessFragmentBase
 			}
 		} else {
 			if(mListView.getVisibility() == View.VISIBLE) {
-				mFilterControls.setVisibility(View.VISIBLE);
+				mLocationWrapper.setVisibility(View.VISIBLE);
 				if(!forceInitialize) {
-					mFilterControls.startAnimation(createFadeInAnimation());
+					mLocationWrapper.startAnimation(createFadeInAnimation());
 				}
 				mMapView.setVisibility(View.VISIBLE);
 				mListView.setVisibility(View.INVISIBLE);
@@ -483,11 +484,11 @@ public class MapFragment extends DBAccessFragmentBase
 			}
 		}
 	}
-	
+
 	private void initializeStationVisibility() {
 		onVisibilityCheckedChanged(mVisibilityType, true);
 	}
-	
+
 	@Override
 	public void onCheckedChanged(RadioGroup group, int checkedId) {
 		int groupId = group.getId();
@@ -575,9 +576,9 @@ public class MapFragment extends DBAccessFragmentBase
 		if(isAnimating()) {
 			return;
 		}
-		boolean isShown = mFilterControls.getVisibility() == View.VISIBLE;
-		mFilterControls.setVisibility(isShown ? View.INVISIBLE : View.VISIBLE);
-		mFilterControls.startAnimation(isShown ? createFadeOutAnimation() : createFadeInAnimation());
+		boolean isShown = mLocationWrapper.getVisibility() == View.VISIBLE;
+		mLocationWrapper.setVisibility(isShown ? View.INVISIBLE : View.VISIBLE);
+		mLocationWrapper.startAnimation(isShown ? createFadeOutAnimation() : createFadeInAnimation());
 		isShown = mVisualControlsContainer.getVisibility() == View.VISIBLE;
 		mVisualControlsContainer.setVisibility(isShown ? View.INVISIBLE : View.VISIBLE);
 		mVisualControlsContainer.startAnimation(isShown ? createFadeOutAnimation() : createFadeInAnimation());
@@ -664,12 +665,12 @@ public class MapFragment extends DBAccessFragmentBase
 			item.removeMarker();
 		}
 	}
-	
+
 	private void clearStations() {
 		resetStations();
 		mStationItems.clear();
 	}
-	
+
 	private void updateStations(SparseArrayCompat<Station> newStations) {
 		if(!mGPSIsEnabled || mMapView == null) {
 			return;
@@ -747,7 +748,7 @@ public class MapFragment extends DBAccessFragmentBase
 		mGeocoder = null;
 		//TODO:検索バー消す
 	}
-	
+
 	@Override
 	public void onGeocoderAddressNotFound() {
 		Toast.makeText(getActivity(), getString(R.string.search_zero_results_format, mSearchEdit.getText().toString()), Toast.LENGTH_LONG).show();
@@ -801,5 +802,5 @@ public class MapFragment extends DBAccessFragmentBase
 		});
 		return animation;
 	}
-	
+
 }
