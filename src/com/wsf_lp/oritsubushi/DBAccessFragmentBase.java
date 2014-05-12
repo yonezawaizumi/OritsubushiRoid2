@@ -2,6 +2,7 @@ package com.wsf_lp.oritsubushi;
 
 import java.util.List;
 
+import com.wsf_lp.mapapp.data.Database;
 import com.wsf_lp.mapapp.data.DatabaseResultReceiver;
 import com.wsf_lp.mapapp.data.DatabaseService;
 import com.wsf_lp.mapapp.data.DatabaseServiceConnector;
@@ -33,7 +34,7 @@ public abstract class DBAccessFragmentBase extends MenuableFragmentBase
 	public boolean isDatabaseEnabled() { return mIsEnabled; }
 
 	protected long callDatabase(String methodName, Object... args) {
-		return isDatabaseEnabled() ? getDatabaseService().callDatabase(this, methodName, args) : Long.MAX_VALUE;
+		return mDatabaseService != null ? getDatabaseService().callDatabase(this, methodName, args) : Long.MAX_VALUE;
 	}
 
 	//must override
@@ -57,10 +58,8 @@ public abstract class DBAccessFragmentBase extends MenuableFragmentBase
 		mIsAlive = true;
 		mRecentDBNotifySequence = savedInstanceState != null ? savedInstanceState.getLong(STATE_RECENT_DB_NOTIFY) : 0;
 
-        mBroadcastReceiver = new OritsubushiBroadcastReceiver(this);
-        mBroadcastReceiver.registerTo(getActivity(), getIntentFilter());
-        mConnector = new DatabaseServiceConnector();
-        mConnector.connect(getActivity(), this);
+		mConnector = new DatabaseServiceConnector();
+		mConnector.connect(getActivity(), this);
 
         setRetainInstance(true);
 	}
@@ -81,12 +80,11 @@ public abstract class DBAccessFragmentBase extends MenuableFragmentBase
 
 	@Override
 	public final void onDatabaseConnected(DatabaseService service) {
-		if(isAlive()) {
-			mDatabaseService = service;
-			mIsEnabled = service.isEnabled();
-			//TODO: recentDBNotifySequence をDBに問い合わせて最新の更新情報を得る
-			onDatabaseConnected(mIsEnabled, false, null);
-		}
+		mDatabaseService = service;
+		//mIsEnabled = service.isEnabled();
+		//TODO: recentDBNotifySequence をDBに問い合わせて最新の更新情報を得る
+		callDatabase(Database.MethodName.ECHO, this);
+		//onDatabaseConnected(mIsEnabled, false, null);
 	}
 
 	@Override
@@ -98,7 +96,12 @@ public abstract class DBAccessFragmentBase extends MenuableFragmentBase
 
 	@Override
 	public final void onDatabaseResult(long sequence, String methodName, Object result) {
-		if(isAlive()) {
+		if(Database.MethodName.ECHO.equals(methodName)) {
+			mIsEnabled = true;
+			mBroadcastReceiver = new OritsubushiBroadcastReceiver(this);
+			mBroadcastReceiver.registerTo(getActivity(), getIntentFilter());
+			onDatabaseConnected(true, false, null);
+		} else if(isAlive()) {
 			onQueryFinished(methodName, result, sequence);
 		}
 	}

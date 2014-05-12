@@ -88,6 +88,7 @@ public class Database {
 		public static final String UPDATE_MEMO = "updateMemo";
 		public static final String PREPARE_SYNC = "prepareSync";
 		public static final String UPDATE_SYNC = "updateSync";
+		public static final String ECHO = "echo";
 	}
 
 	public static class SyncPreparationProperties {
@@ -1177,6 +1178,12 @@ public class Database {
 			if(cursor != null) { cursor.close(); }
 		}
 		return properties;
+	}
+
+	// データベースの導通確認用
+	// というかデータベースキューがスレッドをまたいで動作できているかの確認用
+	public Object echo(Object object) {
+		return object;
 	}
 
 }

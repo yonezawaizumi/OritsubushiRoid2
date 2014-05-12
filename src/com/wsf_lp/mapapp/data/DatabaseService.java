@@ -96,7 +96,6 @@ public class DatabaseService extends Service
 			return sequence;
 		}
 	}
-	private AtomicBoolean isEnabled = new AtomicBoolean();
 	private PriorityBlockingQueue<Request> requests = new PriorityBlockingQueue<Request>();
 	private Handler handler = new Handler();
 	private ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
@@ -133,7 +132,6 @@ public class DatabaseService extends Service
 				version = Math.max(preferences.getInt(PreferenceKey.DATABASE_VERSION, version), version);
 				version = database.initialize(service, service.getMaxStations(), version, service);
 				preferences.edit().putInt(PreferenceKey.DATABASE_VERSION, version).commit();
-				service.isEnabled.set(true);
 			} catch(SQLiteException e) {
 				e.printStackTrace();
 				DatabaseService service = this.service.get();
@@ -246,11 +244,6 @@ public class DatabaseService extends Service
 	}
 
 	//以下、UIスレッドのみから呼ばれる
-
-	public boolean isEnabled() {
-		return isEnabled.get();
-	}
-
 
 	private int previousDatabaseInitializingPercentile;
 
@@ -397,9 +390,6 @@ public class DatabaseService extends Service
 	}
 
 	public long callDatabase(DatabaseResultReceiver receiver, String methodName, Object... args) {
-		if(!isEnabled.get()) {
-			return DATABASE_NOT_READY;
-		}
 		Method method = methodMap.get(methodName);
 		if(method == null) {
 			throw new IllegalArgumentException("method " + methodName + " doesn't exist on Database class");
