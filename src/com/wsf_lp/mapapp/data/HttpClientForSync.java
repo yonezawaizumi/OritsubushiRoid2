@@ -14,6 +14,7 @@ import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.PersistentCookieStore;
 import com.wsf_lp.oritsubushi.R;
 
+@SuppressWarnings("deprecation")
 public class HttpClientForSync extends AsyncHttpClient {
 	private static final long COOKIE_PSEUDO_EXPIRED_MSEC = 365L * 24 * 3600 * 1000;
 	public static final String CHECK_COOKIE_KEY = "geeklog";

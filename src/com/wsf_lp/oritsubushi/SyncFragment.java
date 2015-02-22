@@ -33,6 +33,7 @@ import com.wsf_lp.mapapp.data.OritsubushiBroadcastReceiver;
 import com.wsf_lp.mapapp.data.OritsubushiNotificationIntent;
 import com.wsf_lp.mapapp.data.Station;
 
+@SuppressWarnings("deprecation")
 public class SyncFragment extends DBAccessFragmentBase
 		implements View.OnClickListener, OnBackPressedListener,	OritsubushiBroadcastReceiver.SyncListener {
 
@@ -63,7 +64,7 @@ public class SyncFragment extends DBAccessFragmentBase
 	private static String logoutUrl;
 	private static String twitterOAuthUrl;
 	private static String twitterOAuthUrl1_1;
-	
+
 	@Override
 	protected IntentFilter getIntentFilter() {
 		return OritsubushiNotificationIntent.getSyncFinishIntentFilter();

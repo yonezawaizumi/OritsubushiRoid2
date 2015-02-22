@@ -10,7 +10,7 @@ import android.content.res.Configuration;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.preference.PreferenceScreen;
-import android.support.v4.app.ActionBarDrawerToggle;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
@@ -18,6 +18,7 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
+import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -61,6 +62,11 @@ public class MainActivity extends ActionBarActivity implements
 
 		setContentView(R.layout.main_ab);
 
+		Toolbar toolbar = (Toolbar) findViewById(R.id.tool_bar);
+		//toolbar.setLogo(R.drawable.icon);
+		toolbar.setTitle(R.string.app_name);
+		setSupportActionBar(toolbar);
+
 		ActionBar ab = getSupportActionBar();
 		ab.setDisplayHomeAsUpEnabled(true);
 		ab.setHomeButtonEnabled(true);
@@ -71,7 +77,7 @@ public class MainActivity extends ActionBarActivity implements
 				GravityCompat.START);
 
 		// DrawerList button
-		mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.drawable.ic_drawer, R.string.drawer_open_desc, R.string.drawer_close_desc) {
+		mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.string.drawer_open_desc, R.string.drawer_close_desc) {
 			@Override
 			public void onDrawerOpened(View view) {
 				supportInvalidateOptionsMenu();
@@ -87,6 +93,10 @@ public class MainActivity extends ActionBarActivity implements
 			}
 		};
 		mDrawerLayout.setDrawerListener(mDrawerToggle);
+		mDrawerToggle.setDrawerIndicatorEnabled(true);
+
+		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+		getSupportActionBar().setDisplayShowHomeEnabled(true);
 
 		// DrawerList
 		mDrawerList = (ListView) findViewById(R.id.left_drawer);
@@ -193,7 +203,7 @@ public class MainActivity extends ActionBarActivity implements
 			supportInvalidateOptionsMenu();
 		}
 	}
-	
+
 	public void enableUpButton(boolean enabled) {
 		mDrawerToggle.setDrawerIndicatorEnabled(!enabled);
 	}
@@ -213,5 +223,5 @@ public class MainActivity extends ActionBarActivity implements
 		;
 	}
 
-	
+
 }
