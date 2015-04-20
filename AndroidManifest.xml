@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-	package="com.wsf_lp.oritsubushi" android:versionCode="25"
-	android:versionName="2.7.77">
+	package="com.wsf_lp.oritsubushi" android:versionCode="26"
+	android:versionName="2.7.79">
 	<uses-permission android:name="android.permission.INTERNET"/>
 	<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
 	<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
