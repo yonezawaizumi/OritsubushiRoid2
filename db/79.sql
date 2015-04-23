@@ -21551,3 +21551,5 @@ INSERT OR REPLACE INTO "stations" ("s_id","station","yomi","wiki","pref","addres
 INSERT OR REPLACE INTO "stations" ("s_id","station","yomi","wiki","pref","address","lat","lng","o_id","enabled","weight") VALUES (302083,'神田（交通局前）駅','しんでん（こうつうきょくまえ）','神田（交通局前）停留場',46,'鹿児島市上荒田町41-12',31573043,130540725,246001,1,13);
 INSERT OR REPLACE INTO "stations" ("s_id","station","yomi","wiki","pref","address","lat","lng","o_id","enabled","weight") VALUES (302066,'二中通駅','にちゅうどおり','二中通停留場',46,'鹿児島市荒田1丁目16-3',31577377,130553724,246001,1,13);
 INSERT OR REPLACE INTO "stations" ("s_id","station","yomi","wiki","pref","address","lat","lng","o_id","enabled","weight") VALUES (302052,'甲東中学校前駅','こうとうちゅうがっこうまえ','甲東中学校前停留場',46,'鹿児島市樋之口町1-1',31585987,130552891,246001,1,13);
+INSERT OR REPLACE INTO "operators" ("o_id","operator","type","enabled") VALUES (640001,'皿倉登山鉄道',8,1);
+INSERT OR REPLACE INTO "lines" ("l_id","line","o_id","enabled","l_type") VALUES (64000101,'皿倉山ケーブルカー',640001,1,20);
