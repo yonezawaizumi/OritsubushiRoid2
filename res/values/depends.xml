@@ -4,7 +4,7 @@
     <integer name="settings_mapview_update_disabled_delay_sec">7</integer>
     <integer name="settings_database_initializing_status_update_msec">2000</integer>
     <integer name="settings_map_info_window_animation_duration">750</integer>
-    <string name="information_url">http://oritsubushi.net/oritsubushi/timeline.php</string>
+    <string name="information_url">http://timeline.oritsubushi.net/oritsubushi/timeline.php</string>
     <string name="information_resource_url_base">http://oritsubushi.net/oritsubushi/</string>
     <integer name="menu_dialog_width_ratio">80</integer>
     <string name="sync_url">http://oritsubushi.net/oritsubushi/sync.php</string>
