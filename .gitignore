@@ -14,7 +14,6 @@ proguard/
 .gradle
 app/build/
 .DS_Store
-build.gradle
 build/
 gradle.properties
 gradle/
