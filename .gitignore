@@ -8,18 +8,15 @@ local.properties
 .classpath
 .project
 proguard/
-*.iml
 *.ipr
 *.iws
 .gradle
 app/build/
 .DS_Store
 build/
-gradle.properties
 gradle/
 gradlew
 gradlew.bat
-settings.gradle
 
 .idea/*.xml
 .idea/libraries/
