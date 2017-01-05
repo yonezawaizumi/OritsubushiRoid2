@@ -2,8 +2,11 @@ package com.wsf_lp.oritsubushi;
 
 import java.util.WeakHashMap;
 
+import com.google.firebase.analytics.FirebaseAnalytics;
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.wsf_lp.android.PreferenceFragment.OnPreferenceAttachedListener;
 
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -26,6 +29,8 @@ import android.widget.ListView;
 public class MainActivity extends AppCompatActivity implements
 		OnPreferenceAttachedListener, AdapterView.OnItemClickListener {
 	public static final int CONTENT_VIEW_ID = R.id.content_frame;
+
+	public static final String ARG_FRAGMENT = "fragment";
 
 	private DrawerLayout mDrawerLayout;
 	private ListView mDrawerList;
@@ -50,8 +55,14 @@ public class MainActivity extends AppCompatActivity implements
         //初期化値を先に設定しておかないとデータベース生成時の初期化が完全に行われない
         PreferenceManager.setDefaultValues(this, R.xml.preference, true);
 
-		int recentFragmentPosition = PreferenceManager.getDefaultSharedPreferences(this).getInt(PreferenceKey.RECENT_FRAGMENT_POSITION, 0);
-
+		FirebaseMessaging.getInstance().subscribeToTopic("oritsubushiroid");
+		int fragmentId = onIntent(getIntent(	));
+		int fragmentPosition;
+		if (fragmentId == 0) {
+			fragmentPosition = PreferenceManager.getDefaultSharedPreferences(this).getInt(PreferenceKey.RECENT_FRAGMENT_POSITION, 0);
+		} else {
+			fragmentPosition = -1;
+		}
 		setContentView(R.layout.main_ab);
 
 		Toolbar toolbar = (Toolbar) findViewById(R.id.tool_bar);
@@ -94,9 +105,30 @@ public class MainActivity extends AppCompatActivity implements
 		mDrawerList = (ListView) findViewById(R.id.left_drawer);
 		mDrawerList.setAdapter(FragmentEnum.getInstance().getMenuAdapter(this, R.layout.drawable_menu));
 		mDrawerList.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
-		mDrawerList.setItemChecked(recentFragmentPosition, true);
 		mDrawerList.setOnItemClickListener(this);
-		execFragment(0, true);
+		if (fragmentPosition >= 0) {
+			mDrawerList.setItemChecked(fragmentPosition, true);
+			execFragment(0, true);
+		} else {
+			execFragment(fragmentId, true);
+		}
+	}
+
+	@Override
+	public void onNewIntent(Intent intent) {
+		super.onNewIntent(intent);
+		int id = onIntent(intent);
+		if (id != 0) {
+			execFragment(id, false);
+		}
+	}
+
+	private int onIntent(Intent intent) {
+		if (intent != null && "info".equals(intent.getStringExtra(ARG_FRAGMENT))) {
+			return R.id.info;
+		} else {
+			return 0;
+		}
 	}
 
 	@Override

@@ -1,0 +1,63 @@
+{
+  "project_info": {
+    "project_number": "414012607327",
+    "firebase_url": "https://oritsubushi-f7abf.firebaseio.com",
+    "project_id": "oritsubushi-f7abf",
+    "storage_bucket": "oritsubushi-f7abf.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:414012607327:android:c5113d5cbf40abcb",
+        "android_client_info": {
+          "package_name": "com.wsf_lp.oritsubushi"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "414012607327-jnpoma3sj4dd5h5v7kgqcvrbp6mo8glg.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.wsf_lp.oritsubushi",
+            "certificate_hash": "87E1F8F55D676BFB48997CA15C4800C9EB36AE7A"
+          }
+        },
+        {
+          "client_id": "414012607327-srqk095hsbc7qk4c3eua1mlqbun1dn0q.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAfRaTm0FrpsjrxUMJWd6QF2PlPIaCXtiY"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "414012607327-srqk095hsbc7qk4c3eua1mlqbun1dn0q.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "414012607327-3r3n3d35fg35bplv2h72bba7352u88fc.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.wsf-lp.iOritsubushi",
+                "app_store_id": "489857963"
+              }
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
