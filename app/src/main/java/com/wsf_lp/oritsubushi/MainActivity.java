@@ -1,16 +1,25 @@
 package com.wsf_lp.oritsubushi;
 
+import java.util.Arrays;
 import java.util.WeakHashMap;
 
-import com.google.firebase.analytics.FirebaseAnalytics;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.wsf_lp.android.PreferenceFragment.OnPreferenceAttachedListener;
 
+import android.annotation.TargetApi;
+import android.app.Dialog;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.preference.PreferenceScreen;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.DialogFragment;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -18,6 +27,7 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
@@ -39,6 +49,21 @@ public class MainActivity extends AppCompatActivity implements
 
 	private WeakHashMap<OnBackPressedListener, String> mOnBackPressedListeners = new WeakHashMap<OnBackPressedListener, String>();
 
+	private static final String[] PERMISSIONS = {
+			android.Manifest.permission.ACCESS_FINE_LOCATION,
+			android.Manifest.permission.ACCESS_COARSE_LOCATION
+	};
+
+	interface OnAcceptMyLocationListener {
+		void onAcceptMyLocation();
+	}
+
+	private OnAcceptMyLocationListener mMyLocationListener;
+
+	public static final int MAP_IS_DISABLED = 0;
+	public static final int MY_LOCATION_IS_DISABLED = 1;
+	public static final int MY_LOCATION_IS_ENABLED = 2;
+	private int mMapStatus = MAP_IS_DISABLED;
 
 	public void registerOnBackPressedListener(OnBackPressedListener listener) {
 		mOnBackPressedListeners.put(listener,  "");
@@ -63,6 +88,27 @@ public class MainActivity extends AppCompatActivity implements
 		} else {
 			fragmentPosition = -1;
 		}
+
+		GoogleApiAvailability googleApiAvailability = GoogleApiAvailability.getInstance();
+		int result = googleApiAvailability.isGooglePlayServicesAvailable(this);
+		if (result == ConnectionResult.SUCCESS) {
+			if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
+					!= PackageManager.PERMISSION_GRANTED
+					&& ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION)
+					!= PackageManager.PERMISSION_GRANTED) {
+				setMapStatus(MY_LOCATION_IS_DISABLED);
+				ActivityCompat.requestPermissions(this, PERMISSIONS, 0);
+			} else {
+				setMapStatus(MY_LOCATION_IS_ENABLED);
+			}
+		} else if (googleApiAvailability.isUserResolvableError(result)) {
+			googleApiAvailability.getErrorDialog(this, result, 1, new DialogInterface.OnCancelListener() {
+				@Override
+				public void onCancel(DialogInterface dialog) {
+				}
+			}).show();
+		}
+
 		setContentView(R.layout.main_ab);
 
 		Toolbar toolbar = (Toolbar) findViewById(R.id.tool_bar);
@@ -114,6 +160,35 @@ public class MainActivity extends AppCompatActivity implements
 		}
 	}
 
+	@TargetApi(Build.VERSION_CODES.M)
+	@Override
+	public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+		super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+		int[] granted2 = {PackageManager.PERMISSION_GRANTED, PackageManager.PERMISSION_GRANTED};
+		if (Arrays.equals(permissions, PERMISSIONS) && Arrays.equals(grantResults, granted2)) {
+			setMapStatus(MY_LOCATION_IS_ENABLED);
+		}
+	}
+
+	public void setOnAcceptMyLocationListener(OnAcceptMyLocationListener listener) {
+		mMyLocationListener = listener;
+		if (getMapStatus() == MY_LOCATION_IS_ENABLED) {
+			listener.onAcceptMyLocation();
+		}
+	}
+
+	public int getMapStatus() {
+		return mMapStatus;
+	}
+
+	private void setMapStatus(int mapStatus) {
+		int prevMapStatus = mMapStatus;
+		mMapStatus = mapStatus;
+		if (mapStatus == MY_LOCATION_IS_ENABLED && prevMapStatus != MY_LOCATION_IS_ENABLED && mMyLocationListener != null) {
+			mMyLocationListener.onAcceptMyLocation();
+		}
+	}
+
 	@Override
 	public void onNewIntent(Intent intent) {
 		super.onNewIntent(intent);
@@ -128,6 +203,38 @@ public class MainActivity extends AppCompatActivity implements
 			return R.id.info;
 		} else {
 			return 0;
+		}
+	}
+
+	public static class FinishDialogFragment extends DialogFragment {
+		@Override
+		public Dialog onCreateDialog(Bundle savedInstanceState) {
+			return new AlertDialog.Builder(getActivity())
+					.setTitle(getString(R.string.map_update_title))
+					.setMessage(getString(R.string.map_update_message))
+					.setPositiveButton(getString(R.string.map_update_ok), new DialogInterface.OnClickListener() {
+						@Override
+						public void onClick(DialogInterface dialog, int which) {
+							getActivity().finish();
+						}
+					})
+					.setNegativeButton(getString(R.string.map_update_cancel), null)
+					.create();
+		}
+
+		@Override
+		public void onPause() {
+			super.onPause();
+			dismiss();
+		}
+	}
+	@Override
+	public void onActivityResult(int requestCode, int resultCode, Intent data) {
+		GoogleApiAvailability googleApiAvailability = GoogleApiAvailability.getInstance();
+		int result = googleApiAvailability.isGooglePlayServicesAvailable(this);
+		if (result == ConnectionResult.SUCCESS) {
+			FinishDialogFragment dialog = new FinishDialogFragment();
+			dialog.show(getSupportFragmentManager(), "finish_dialog");
 		}
 	}
 

@@ -65,6 +65,7 @@ public class MapFragment extends DBAccessFragmentBase
 		OnCameraIdleListener, OnMapClickListener, OnMarkerClickListener, OnInfoWindowClickListener, InfoWindowAdapter,
 		Geocoder.OnResultListener,
 		OnMapReadyCallback,
+		MainActivity.OnAcceptMyLocationListener,
 		OritsubushiBroadcastReceiver.MapListener {
 
 	private static final int[] VISIBILITY_BUTTON_IDS = {
@@ -178,11 +179,10 @@ public class MapFragment extends DBAccessFragmentBase
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
 
-		Activity activity = getActivity();
+		MainActivity activity = (MainActivity)getActivity();
 		View container = getView();
 
-        mGPSIsEnabled = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(activity)
-                == ConnectionResult.SUCCESS;
+        mGPSIsEnabled = activity.getMapStatus() != MainActivity.MAP_IS_DISABLED;
 
 		container.findViewById(R.id.map_disabled).setVisibility(mGPSIsEnabled ? View.GONE : View.VISIBLE);
 
@@ -209,6 +209,14 @@ public class MapFragment extends DBAccessFragmentBase
 		}
 	}
 
+	public void onAcceptMyLocation() {
+		try {
+			mMap.setMyLocationEnabled(true);
+		} catch (SecurityException e) {
+			;
+		}
+	}
+
 	@Override
 	public void onMapReady(GoogleMap googleMap) {
         googleMap.setOnCameraIdleListener(this);
@@ -228,11 +236,7 @@ public class MapFragment extends DBAccessFragmentBase
     private void startMap(GoogleMap map) {
         if (mMap != map) {
             mMap = map;
-            try {
-                mMap.setMyLocationEnabled(true);
-            } catch (SecurityException e) {
-                ;
-            }
+			((MainActivity)getActivity()).setOnAcceptMyLocationListener(this);
             SharedPreferences preference = PreferenceManager.getDefaultSharedPreferences(getActivity());
             final float INVALID_LAT = 100;
             float lat = preference.getFloat(PreferenceKey.MAP_CAMERA_LAT, INVALID_LAT);
@@ -250,7 +254,13 @@ public class MapFragment extends DBAccessFragmentBase
                     preference.getFloat(PreferenceKey.MAP_CAMERA_BEARING, 0)
             );
             mMap.moveCamera(CameraUpdateFactory.newCameraPosition(position));
-        }
+        } else {
+			try {
+				mMap.setMyLocationEnabled(true);
+			} catch (SecurityException e) {
+				;
+			}
+		}
     }
 
 	@Override
@@ -282,11 +292,13 @@ public class MapFragment extends DBAccessFragmentBase
 	public void onStop() {
 		super.onStop();
 		if(mGPSIsEnabled && mMap != null) {
-            try {
-                mMap.setMyLocationEnabled(false);
-            } catch (SecurityException e) {
-                ;
-            }
+			if (((MainActivity)getActivity()).getMapStatus() == MainActivity.MY_LOCATION_IS_ENABLED) {
+				try {
+					mMap.setMyLocationEnabled(false);
+				} catch (SecurityException e) {
+					;
+				}
+			}
 			CameraPosition position = mMap.getCameraPosition();
 			PreferenceManager.getDefaultSharedPreferences(getActivity()).edit()
 				.putFloat(PreferenceKey.MAP_CAMERA_LAT, (float)position.target.latitude)
