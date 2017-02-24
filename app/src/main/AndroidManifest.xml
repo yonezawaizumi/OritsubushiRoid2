@@ -44,7 +44,7 @@
 		<service android:name="com.wsf_lp.mapapp.data.DatabaseService"
 			android:exported="false" />
 		<service
-			android:name="com.google.firebase.iid.FirebaseInstanceIdService">
+			android:name="com.wsf_lp.oritsubushi.FirInstanceIdService">
 			<intent-filter>
 				<action android:name="com.google.firebase.INSTANCE_ID_EVENT"/>
 			</intent-filter>

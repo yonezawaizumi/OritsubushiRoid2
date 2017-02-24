@@ -67,9 +67,9 @@ public class InformationFragment extends MenuableFragmentBase {
 		}
 		
 		@Override
-		public void onLoadResource(WebView view, String url) {
-			super.onLoadResource(view, url);
-			if(mLoading && !url.startsWith(mResourceUrlBase)) {
+		public void onPageFinished(WebView view, String url) {
+			super.onPageFinished(view, url);
+			if(mLoading && url.equals(mUrl)) {
 				mFragment.get().onPageReady();
 				mLoading = false;
 			}
@@ -185,6 +185,12 @@ public class InformationFragment extends MenuableFragmentBase {
 		mWebView.setWebViewClient(new MyWebViewClient(this, mUrl, getString(R.string.information_resource_url_base)));
 
 		return view;
+	}
+
+	@Override
+	public void onReload() {
+		mReloadButton.setEnabled(false);
+		load();
 	}
 
 	@Override

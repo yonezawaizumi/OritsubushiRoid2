@@ -14,4 +14,7 @@ public abstract class MenuableFragmentBase extends Fragment {
 		((MainActivity)fragment.getActivity()).onFragmentStart(fragment);
 	}
 
+	public void onReload() {
+
+	}
 }

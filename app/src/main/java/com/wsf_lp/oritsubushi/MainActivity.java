@@ -307,6 +307,7 @@ public class MainActivity extends AppCompatActivity implements
 					e.printStackTrace();
 				}
 			} else if(fragment.getView() != null && fragment.getView().isShown()) {
+				((MenuableFragmentBase)fragment).onReload();
 				return true;
 			}
 			FragmentTransaction transaction = fragmentManager

@@ -5,7 +5,7 @@
     <integer name="settings_database_initializing_status_update_msec">2000</integer>
     <integer name="settings_map_info_window_animation_duration">750</integer>
     <string name="information_url">https://ss1.coressl.jp/timeline.oritsubushi.net/oritsubushi/timeline.php</string>
-    <string name="information_resource_url_base">https://oritsubushi.net/oritsubushi/</string>
+    <string name="information_resource_url_base">https://ss1.coressl.jp/timeline.oritsubushi.net/oritsubushi/</string>
     <integer name="menu_dialog_width_ratio">80</integer>
     <string name="sync_url">https://oritsubushi.net/oritsubushi/sync.php</string>
     <string name="users_url">https://oritsubushi.net/users.php</string>
