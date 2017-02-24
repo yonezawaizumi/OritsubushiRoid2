@@ -101,6 +101,7 @@ public abstract class GroupFragmentBase extends DBAccessFragmentBase implements 
 				@Override
 				public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 					if(getCurrentPanelIndex() == panelIndex && onSelectGroup(panelIndex, mPanels[panelIndex].mGroups.get(position))) {
+						mPanels[panelIndex + 1].mListView.setSelection(0);
 						updateText(panelIndex + 1);
 						mPanels[panelIndex + 1].mWrapper.setVisibility(View.VISIBLE);
 						mFlipper.setInAnimation(AnimationUtils.loadAnimation(getActivity(), R.anim.slide_in_right));
