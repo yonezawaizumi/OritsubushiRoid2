@@ -92,7 +92,7 @@ public class StationFragment extends DBAccessFragmentBase {
 		view.findViewById(R.id.verbose_button_wikipedia).setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://ja.m.wikipedia.org/wiki/" + Uri.encode(mStation.getWiki()))));
+				startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://ja.m.wikipedia.org/wiki/" + Uri.encode(mStation.getWiki()))));
 			}
 		});
 		view.findViewById(R.id.verbose_button_move_to).setOnClickListener(new OnClickListener() {

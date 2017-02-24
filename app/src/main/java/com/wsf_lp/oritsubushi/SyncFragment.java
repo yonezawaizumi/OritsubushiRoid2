@@ -404,6 +404,7 @@ public class SyncFragment extends DBAccessFragmentBase
 		WeakReference<SyncFragment> mFragment;
 		Context mContext;
 		boolean mPostForLogin;
+		boolean mDenied;
 		public SyncWebViewClient(SyncFragment fragment) {
 			mFragment = new WeakReference<SyncFragment>(fragment);
 			mContext = fragment.getActivity().getApplicationContext();
@@ -454,6 +455,10 @@ public class SyncFragment extends DBAccessFragmentBase
 				} else if(mPostForLogin) {
 					self.startProgress(true);
 					webView.loadUrl(syncUrl);
+				} else if(mDenied) {
+					mDenied = false;
+					self.startProgress(true);
+					webView.loadUrl(syncUrl);
 				} else {
 					self.setWebViewMode(true);
 				}
@@ -494,6 +499,9 @@ public class SyncFragment extends DBAccessFragmentBase
 				} else if(url.indexOf(twitterOAuthUrl1_1) == 0) {
 					return false;
 				} else if(url.indexOf(loginUrl) == 0) {
+					if(url.indexOf("&denied=") > 0) {
+						mDenied = true;
+					}
 					return false;
 				}
 				break;
