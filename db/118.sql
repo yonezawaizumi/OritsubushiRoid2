@@ -21921,3 +21921,4 @@ INSERT OR REPLACE INTO "stations_lines" ("l_id","s_id","s_sort") VALUES (5001012
 INSERT OR REPLACE INTO "stations" ("s_id","station","yomi","wiki","pref","address","lat","lng","o_id","enabled","weight") VALUES (306062,'十府ヶ浦海岸駅','とふがうらかいがん','',3,'九戸郡野田村大字野田第10地割中沼10-3',40096755,141824188,303002,1,13);
 INSERT OR REPLACE INTO "stations" ("s_id","station","yomi","wiki","pref","address","lat","lng","o_id","enabled","weight") VALUES (302651,'秋津駅','あきつ','',13,'東村山市秋津町五丁目7-8',35778281,139496750,50020,1,13);
 INSERT OR REPLACE INTO "stations" ("s_id","station","yomi","wiki","pref","address","lat","lng","o_id","enabled","weight") VALUES (303435,'小篭通駅','こごめどおり','小篭通停留場',39,'南国市小籠748-2',33576280,133625605,339001,1,13);
+UPDATE "operators" SET "operator" = 'とさでん交通' WHERE o_id = 339001;
