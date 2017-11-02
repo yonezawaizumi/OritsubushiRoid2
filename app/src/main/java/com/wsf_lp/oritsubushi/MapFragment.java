@@ -773,7 +773,7 @@ public class MapFragment extends DBAccessFragmentBase
 	private void doSearch() {
 		//TODO:現時点では地点検索のみの実装
 		mGeocoder = new Geocoder(this, R.string.maybe);
-		mGeocoder.request(mSearchEdit.getText().toString());
+		mGeocoder.request(mSearchEdit.getText().toString(), getContext());
 	}
 
 	@Override

@@ -11,9 +11,11 @@ import com.google.android.gms.maps.model.LatLng;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.JsonHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
+import com.wsf_lp.oritsubushi.R;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.os.Bundle;
@@ -52,7 +54,7 @@ public class Geocoder {
 		mFragment = new WeakReference<Fragment>(fragment);
 	}
 	
-	public void request(String place) {
+	public void request(String place, Context context) {
 		final String url = "https://maps.google.com/maps/api/geocode/json";
 		//?address=%@&sensor=false&language=%@";
 		final AsyncHttpClient client = new AsyncHttpClient();
@@ -61,6 +63,7 @@ public class Geocoder {
 		params.put("sensor", "false");
 		params.put("region", "jp");
 		params.put("language", Locale.getDefault().getLanguage());
+		params.put("key", context.getString(R.string.geocoder_key));
 		client.get(url, params, new JsonHttpResponseHandler() {
 			@Override
 			public void onSuccess(JSONObject json) {
