@@ -1166,8 +1166,9 @@ public class Database {
 			writer = new BufferedWriter(streamWriter);
 			cursor = sqlite.rawQuery("SELECT * FROM completions WHERE update_date > ?", new String[] { properties.updateDate });
 			while(cursor.moveToNext()) {
+				String memo = cursor.getString(3).replace("\\", "\\\\").replace("\n", "\\n");
 				writer.write(String.format("%d\t%d\t%d\t%s\n",
-						cursor.getInt(0), cursor.getInt(1), cursor.getInt(2), cursor.getString(3)));
+						cursor.getInt(0), cursor.getInt(1), cursor.getInt(2), memo));
 			}
 			properties.databaseVersion = Integer.toString(sqlite.getVersion());
 		} catch (IOException e) {
