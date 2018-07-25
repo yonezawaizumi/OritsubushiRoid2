@@ -1,15 +1,12 @@
 package com.wsf_lp.android;
 
 import java.lang.ref.WeakReference;
-import java.util.Locale;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.google.android.gms.maps.model.LatLng;
 import com.loopj.android.http.AsyncHttpClient;
-import com.loopj.android.http.JsonHttpResponseHandler;
+import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
 import com.wsf_lp.oritsubushi.R;
 
@@ -42,7 +39,7 @@ public class Geocoder {
 	private WeakReference<Fragment> mFragment;
 	private final int SELECT_DIALOG_TITLE_ID;
 	private String[] mPlaces;
-	private LatLngF[] mLocations;
+	private LatLngS[] mLocations;
 	
 	public Geocoder(Fragment fragment, int selectDialogTitleId) {
 		SELECT_DIALOG_TITLE_ID = selectDialogTitleId;
@@ -55,48 +52,30 @@ public class Geocoder {
 	}
 	
 	public void request(String place, Context context) {
-		final String url = "https://maps.google.com/maps/api/geocode/json";
-		//?address=%@&sensor=false&language=%@";
+		final String url = "https://oritsubushi.net/oritsubushi/yahoomap.php";
+		//?k=%@
 		final AsyncHttpClient client = new AsyncHttpClient();
 		RequestParams params = new RequestParams();
-		params.put("address", place);
-		params.put("sensor", "false");
-		params.put("region", "jp");
-		params.put("language", Locale.getDefault().getLanguage());
-		params.put("key", context.getString(R.string.geocoder_key));
-		client.get(url, params, new JsonHttpResponseHandler() {
+		params.put("k", place);
+		client.get(url, params, new AsyncHttpResponseHandler() {
 			@Override
-			public void onSuccess(JSONObject json) {
+			public void onSuccess(String response) {
 				Fragment fragment = mFragment.get();
 				if(fragment == null) {
 					return;
 				}
 				OnResultListener listener = (OnResultListener)fragment;
-				try {
-					String status = json.getString("status");
-					if(status.equals("OK")) {
-						switch(parseResults(json.getJSONArray("results"))) {
-						case 0:
-							listener.onGeocoderAddressNotFound();
-							break;
-						case 1:
-							listener.onGeocoderAddressSelect(mPlaces[0], mLocations[0].getLatLng());
-							break;
-						default:
-							SelectDialogFragment.newInstance(Geocoder.this, fragment)
-								.show(fragment.getActivity().getSupportFragmentManager(), Geocoder.class.getCanonicalName());
-							break;
-						}
-					} else if(status.equals("ZERO_RESULTS")) {
-						listener.onGeocoderAddressNotFound();
-					} else if(status.equals("REQUEST_DENIED")) {
-						listener.onGeocoderError(REQUEST_DENIED);
-					} else {
-						listener.onGeocoderError(FATAL_ERROR);
-					}
-				} catch (JSONException e) {
-					e.printStackTrace();
-					listener.onGeocoderError(FATAL_ERROR);
+				switch(parseResults(response.split("\n"))) {
+				case 0:
+					listener.onGeocoderAddressNotFound();
+					break;
+				case 1:
+					listener.onGeocoderAddressSelect(mPlaces[0], mLocations[0].getLatLng());
+					break;
+				default:
+					SelectDialogFragment.newInstance(Geocoder.this, fragment)
+						.show(fragment.getActivity().getSupportFragmentManager(), Geocoder.class.getCanonicalName());
+					break;
 				}
 			}
 			@Override
@@ -106,50 +85,56 @@ public class Geocoder {
 					listener.onGeocoderError(NETWORK_ERROR);
 				}
 			}
-			@Override
-			public void onFailure(Throwable e, JSONArray errorResponse) {
-				OnResultListener listener = (OnResultListener)mFragment.get();
-				if(listener != null) {
-					listener.onGeocoderError(NETWORK_ERROR);
-				}
-			}
-			@Override
-			public void onFailure(Throwable e, JSONObject errorResponse) {
-				OnResultListener listener = (OnResultListener)mFragment.get();
-				if(listener != null) {
-					listener.onGeocoderError(NETWORK_ERROR);
-				}
-			}
 		});
 	}
 
-	private int parseResults(JSONArray locations) throws JSONException {
-		final int length = locations.length();
-		if(length > 0) {
-			mPlaces = new String[length];
-			this.mLocations = new LatLngF[length];
-			for(int index = 0; index < length; ++index) {
-				JSONObject result = locations.getJSONObject(index);
-				mPlaces[index] = result.getString("formatted_address");
-				result = result.getJSONObject("geometry").getJSONObject("location");
-				this.mLocations[index] = new LatLngF(result.getDouble("lat"), result.getDouble("lng"));
+	private int parseResults(String[] locations) {
+		String[][] locs = null;
+		if (locations.length > 0) {
+			List<String[]> ls = new ArrayList<String[]>(locations.length);
+			for (String loc : locations) {
+				String[] chunks = loc.split("\t");
+				if (chunks.length == 3) {
+					ls.add(chunks);
+				}
 			}
+			if (!ls.isEmpty()) {
+				locs = ls.toArray(new String[0][0]);
+			}
+		}
+		if(locs != null && locs.length > 0) {
+			mPlaces = new String[locs.length];
+			this.mLocations = new LatLngS[locs.length];
+			for(int index = 0; index < locs.length; ++index) {
+				mPlaces[index] = locs[index][0];
+				this.mLocations[index] = new LatLngS(locs[index][1], locs[index][2]);
+			}
+			return locs.length;
 		} else {
 			mPlaces = null;
 			this.mLocations = null;
+			return 0;
 		}
-		return length;
 	}
 
-	public static class LatLngF implements Parcelable {
+	public static class LatLngS implements Parcelable {
 		float lat;
 		float lng;
-		public LatLngF() {}
-		public LatLngF(double latD, double lngD) {
-			lat = (float)latD;
-			lng = (float)lngD;
+		public LatLngS() {}
+		public LatLngS(int latI, int lngI) {
+			lat = latI / 1000000.0f;
+			lng = lngI / 1000000.0f;
 		}
-		private LatLngF(Parcel in) {
+		public LatLngS(String latS, String lngS) {
+			try {
+				lat = Integer.parseInt(latS) / 1000000.0f;
+				lng = Integer.parseInt(lngS) / 1000000.0f;
+			} catch (NumberFormatException e) {
+				lat = 0.0f;
+				lng = 0.0f;
+			}
+		}
+		private LatLngS(Parcel in) {
 			lat = in.readFloat();
 			lng = in.readFloat();
 		}
@@ -165,14 +150,14 @@ public class Geocoder {
 			dest.writeFloat(lat);
 			dest.writeFloat(lng);
 		}
-		public static final Parcelable.Creator<LatLngF> CREATOR = new Parcelable.Creator<LatLngF>() {
+		public static final Parcelable.Creator<LatLngS> CREATOR = new Parcelable.Creator<LatLngS>() {
 			@Override
-			public LatLngF createFromParcel(Parcel source) {
-				return new LatLngF(source);
+			public LatLngS createFromParcel(Parcel source) {
+				return new LatLngS(source);
 			}
 			@Override
-			public LatLngF[] newArray(int size) {
-				return new LatLngF[size];
+			public LatLngS[] newArray(int size) {
+				return new LatLngS[size];
 			}
 		};
 	}
@@ -205,7 +190,7 @@ public class Geocoder {
 						Bundle arguments = getArguments();
 						((OnResultListener)getTargetFragment()).onGeocoderAddressSelect(
 								arguments.getStringArray(STATE_PLACES)[which],
-								((LatLngF[])arguments.getParcelableArray(STATE_LOCATIONS))[which].getLatLng()
+								((LatLngS[])arguments.getParcelableArray(STATE_LOCATIONS))[which].getLatLng()
 						);
 					}
 				})
