@@ -4,14 +4,13 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import org.apache.http.cookie.Cookie;
-import org.apache.http.impl.cookie.BasicClientCookie;
+import cz.msebera.android.httpclient.cookie.Cookie;
+import cz.msebera.android.httpclient.impl.cookie.BasicClientCookie;
 
 import android.content.Context;
 
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.PersistentCookieStore;
-import com.wsf_lp.android.AndroidUtils;
 import com.wsf_lp.android.CookieSyncManager;
 import com.wsf_lp.oritsubushi.R;
 
@@ -84,11 +83,11 @@ public class HttpClientForSync extends AsyncHttpClient {
 	}
 
 	private static boolean getLogin(PersistentCookieStore cookieStore) {
-		List<Cookie> cookies = cookieStore.getCookies();
+		List<cz.msebera.android.httpclient.cookie.Cookie> cookies = cookieStore.getCookies();
 		if(cookies == null) {
 			return false;
 		}
-		for(Cookie cookie : cookies) {
+		for(cz.msebera.android.httpclient.cookie.Cookie cookie : cookies) {
 			if(cookie.getDomain().equals(domain) && cookie.getName().equals(CHECK_COOKIE_KEY)) {
 				try {
 					return Integer.parseInt(cookie.getValue()) > 0;

@@ -22,6 +22,8 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
 
+import cz.msebera.android.httpclient.Header;
+
 public class InformationFragment extends MenuableFragmentBase {
 
 	private static class MyWebViewClient extends WebViewClient {
@@ -82,17 +84,25 @@ public class InformationFragment extends MenuableFragmentBase {
 			mFragment = new WeakReference<InformationFragment>(fragment);
 		}
 		@Override
-		public void onSuccess(String response) {
+		public void onSuccess(int i, Header[] headers, byte[] bytes) {
 			InformationFragment fragment = mFragment.get();
 			if(fragment != null) {
-				fragment.onLoadSuccess(response);
+				try {
+					fragment.onLoadSuccess(new String(bytes, "UTF-8"));
+				} catch (java.io.UnsupportedEncodingException e) {
+					fragment.onLoadFailure(new String(bytes));
+				}
 			}
 		}
 		@Override
-		public void onFailure(Throwable error, String response) {
+		public void onFailure(int i, Header[] headers, byte[] bytes, Throwable throwable) {
 			InformationFragment fragment = mFragment.get();
 			if(fragment != null) {
-				fragment.onLoadFailure(response);
+				try {
+					fragment.onLoadFailure(new String(bytes, "UTF-8"));
+				} catch (java.io.UnsupportedEncodingException e) {
+					fragment.onLoadFailure(new String(bytes));
+				}
 			}
 		}
 	}

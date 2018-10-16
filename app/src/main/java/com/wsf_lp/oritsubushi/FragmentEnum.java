@@ -36,14 +36,14 @@ public class FragmentEnum {
 	}
 
 	private final MenuProperty[] MENUS = new MenuProperty[] {
-		new MenuProperty(MapFragment.class, R.id.main, R.drawable.map, R.string.map, MenuItemCompat.SHOW_AS_ACTION_NEVER),
-		new MenuProperty(OperatorTypeGroupFragment.class, R.id.operator_type, R.drawable.operator_type, R.string.operator_type, MenuItemCompat.SHOW_AS_ACTION_NEVER),
-		new MenuProperty(PrefGroupFragment.class, R.id.pref, R.drawable.pref, R.string.pref, MenuItemCompat.SHOW_AS_ACTION_NEVER),
-		new MenuProperty(CompletionDateGroupFragment.class, R.id.comp_date, R.drawable.comp_date, R.string.comp_date, MenuItemCompat.SHOW_AS_ACTION_NEVER),
-		new MenuProperty(YomiGroupFragment.class, R.id.yomi, R.drawable.yomi, R.string.yomi, MenuItemCompat.SHOW_AS_ACTION_NEVER),
-		new MenuProperty(SyncFragment.class, R.id.sync, R.drawable.sync, R.string.sync, MenuItemCompat.SHOW_AS_ACTION_ALWAYS),
-		new MenuProperty(InformationFragment.class, R.id.info, R.drawable.info, R.string.info, MenuItemCompat.SHOW_AS_ACTION_IF_ROOM),
-		new MenuProperty(OritsubushiPreferenceFragment.class, R.id.preferences, R.drawable.preferences, R.string.preferences, MenuItemCompat.SHOW_AS_ACTION_IF_ROOM),
+		new MenuProperty(MapFragment.class, R.id.main, R.drawable.map, R.string.map, MenuItem.SHOW_AS_ACTION_NEVER),
+		new MenuProperty(OperatorTypeGroupFragment.class, R.id.operator_type, R.drawable.operator_type, R.string.operator_type, MenuItem.SHOW_AS_ACTION_NEVER),
+		new MenuProperty(PrefGroupFragment.class, R.id.pref, R.drawable.pref, R.string.pref, MenuItem.SHOW_AS_ACTION_NEVER),
+		new MenuProperty(CompletionDateGroupFragment.class, R.id.comp_date, R.drawable.comp_date, R.string.comp_date, MenuItem.SHOW_AS_ACTION_NEVER),
+		new MenuProperty(YomiGroupFragment.class, R.id.yomi, R.drawable.yomi, R.string.yomi, MenuItem.SHOW_AS_ACTION_NEVER),
+		new MenuProperty(SyncFragment.class, R.id.sync, R.drawable.sync, R.string.sync, MenuItem.SHOW_AS_ACTION_ALWAYS),
+		new MenuProperty(InformationFragment.class, R.id.info, R.drawable.info, R.string.info, MenuItem.SHOW_AS_ACTION_IF_ROOM),
+		new MenuProperty(OritsubushiPreferenceFragment.class, R.id.preferences, R.drawable.preferences, R.string.preferences, MenuItem.SHOW_AS_ACTION_IF_ROOM),
 	};
 
 	private class Adapter extends ArrayAdapter<MenuProperty> {
@@ -103,18 +103,18 @@ public class FragmentEnum {
 
 	public void addActionItems(Menu menu) {
 		for(MenuProperty property : MENUS) {
-			if(property.action == MenuItemCompat.SHOW_AS_ACTION_NEVER) {
+			if(property.action == MenuItem.SHOW_AS_ACTION_NEVER) {
 				continue;
 			}
 			MenuItem item = menu.add(Menu.NONE, property.id, Menu.NONE, property.title);
 			item.setIcon(property.icon);
-			MenuItemCompat.setShowAsAction(item, property.action);
+			item.setShowAsAction(property.action);
 		}
 	}
 
 	public void enableActionItems(Menu menu, int position) {
 		for(int index = MENUS.length - 1; index >= 0; --index) {
-			if(MENUS[index].action == MenuItemCompat.SHOW_AS_ACTION_NEVER) {
+			if(MENUS[index].action == MenuItem.SHOW_AS_ACTION_NEVER) {
 				continue;
 			}
 			menu.findItem(MENUS[index].id).setVisible(position != AdapterView.INVALID_POSITION && index != position);
@@ -122,7 +122,7 @@ public class FragmentEnum {
 	}
 
 	public boolean isActionPosition(int position) {
-		return 0 <= position && position < MENUS.length && MENUS[position].action == MenuItemCompat.SHOW_AS_ACTION_NEVER;
+		return 0 <= position && position < MENUS.length && MENUS[position].action == MenuItem.SHOW_AS_ACTION_NEVER;
 	}
 
 }

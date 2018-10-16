@@ -39,6 +39,8 @@ import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 import android.widget.Toast;
 
+import cz.msebera.android.httpclient.Header;
+
 public class DatabaseService extends Service
 		implements SharedPreferences.OnSharedPreferenceChangeListener,
 			Database.OnProgressListener {
@@ -47,6 +49,8 @@ public class DatabaseService extends Service
 	public static final int WAIT_END_SEC = 10;
 	private static final int NOTIFICATION_ID_INITIALIZE = 1;
 	private static final int NOTIFICATION_ID_SYNC = 2;
+
+	public static final String CHANNEL_ID = "database";
 
 	//UIスレッドからのみ呼ばれる
 	private final IBinder binder = new DatabaseBinder(this);
@@ -262,7 +266,7 @@ public class DatabaseService extends Service
 		if(percentile == 0) {
 			final String statusText = getString(R.string.notification_database_initializing, percentile);
 			initializingPendingIntent = PendingIntent.getActivity(this, 0, new Intent(this, MainActivity.class), PendingIntent.FLAG_CANCEL_CURRENT);
-			NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext())
+			NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), CHANNEL_ID)
 				.setSmallIcon(R.drawable.notification)
 				.setTicker(statusText)
 				.setContentTitle(getString(R.string.app_name))
@@ -280,7 +284,7 @@ public class DatabaseService extends Service
 			previousDatabaseInitializingPercentile = percentile;
 			final String statusText = getString(R.string.notification_database_initializing, percentile);
 			final NotificationManager manager = (NotificationManager)this.getSystemService(Service.NOTIFICATION_SERVICE);
-			NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext())
+			NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), CHANNEL_ID)
 				.setSmallIcon(R.drawable.notification)
 				.setTicker(statusText)
 				.setContentTitle(getString(R.string.app_name))
@@ -344,7 +348,7 @@ public class DatabaseService extends Service
 		isSyncing.set(true);
 		final String statusText = getString(R.string.sync_preparing);
 		syncingPendingIntent = PendingIntent.getActivity(this, 0, new Intent(this, MainActivity.class), PendingIntent.FLAG_CANCEL_CURRENT);
-		NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext())
+		NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), CHANNEL_ID)
 			.setSmallIcon(R.drawable.notification)
 			.setTicker(statusText)
 			.setContentTitle(getString(R.string.app_name))
@@ -359,7 +363,7 @@ public class DatabaseService extends Service
 
 	private void updateSyncingNotification(int id) {
 		String statusText = getString(id);
-		NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext())
+		NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), CHANNEL_ID)
 			.setSmallIcon(R.drawable.notification)
 			.setTicker(statusText)
 			.setContentTitle(getString(R.string.app_name))
@@ -375,7 +379,7 @@ public class DatabaseService extends Service
 	private void finishSyncingNotification(int id) {
 		stopForeground(true);
 		final String statusText = getString(id);
-		NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext())
+		NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), CHANNEL_ID)
 			.setSmallIcon(R.drawable.notification)
 			.setTicker(statusText)
 			.setContentTitle(getString(R.string.app_name))
@@ -452,19 +456,19 @@ public class DatabaseService extends Service
 			this.file = file;
 		}
 		@Override
-		public void onSuccess(byte[] binaryData) {
+        public void onSuccess(int i, Header[] headers, byte[] bytes) {
 			DatabaseService service = this.service.get();
 			if(service != null) {
 				if(client.getLogin()) {
 					service.updateSyncingNotification(R.string.sync_database);
-					service.callDatabase(null, Database.MethodName.UPDATE_SYNC, binaryData);
+					service.callDatabase(null, Database.MethodName.UPDATE_SYNC, bytes);
 				} else {
 					service.finishSyncingNotification(R.string.sync_login_failed);
 				}
 			}
 		}
 		@Override
-		public void onFailure(Throwable e, byte[] binaryData) {
+        public void onFailure(int i, Header[] headers, byte[] bytes, Throwable throwable) {
 			DatabaseService service = this.service.get();
 			if(service != null) {
 				service.finishSyncingNotification(R.string.sync_network_error);
@@ -474,7 +478,7 @@ public class DatabaseService extends Service
 		public void onFinish() {
 			file.delete();
 		}
-	}
+    }
 
 	private void finishSync(boolean updated) {
 		PreferenceManager.getDefaultSharedPreferences(this).edit().putLong(PreferenceKey.SYNC_RECENT_DATE, System.currentTimeMillis()).commit();

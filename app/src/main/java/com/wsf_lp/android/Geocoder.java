@@ -22,6 +22,8 @@ import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 
+import cz.msebera.android.httpclient.Header;
+
 public class Geocoder {
 	public static final int OK = 0;
 	public static final int ZERO_RESULTS = 1;
@@ -59,7 +61,13 @@ public class Geocoder {
 		params.put("k", place);
 		client.get(url, params, new AsyncHttpResponseHandler() {
 			@Override
-			public void onSuccess(String response) {
+			public void onSuccess(int i, Header[] headers, byte[] bytes) {
+				String response;
+				try {
+					response = new String(bytes, "utf-8");
+				} catch (java.io.UnsupportedEncodingException e) {
+					response = new String(bytes);
+				}
 				Fragment fragment = mFragment.get();
 				if(fragment == null) {
 					return;
@@ -79,7 +87,7 @@ public class Geocoder {
 				}
 			}
 			@Override
-			public void onFailure(Throwable e, String content) {
+			public void onFailure(int i, Header[] headers, byte[] bytes, Throwable throwable) {
 				OnResultListener listener = (OnResultListener)mFragment.get();
 				if(listener != null) {
 					listener.onGeocoderError(NETWORK_ERROR);

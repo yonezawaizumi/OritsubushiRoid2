@@ -5,6 +5,7 @@ import java.util.WeakHashMap;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
+import com.google.firebase.FirebaseApp;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.wsf_lp.android.PreferenceFragment.OnPreferenceAttachedListener;
 
@@ -77,7 +78,7 @@ public class MainActivity extends AppCompatActivity implements
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-        //初期化値を先に設定しておかないとデータベース生成時の初期化が完全に行われない
+		//初期化値を先に設定しておかないとデータベース生成時の初期化が完全に行われない
         PreferenceManager.setDefaultValues(this, R.xml.preference, true);
 
 		FirebaseMessaging.getInstance().subscribeToTopic("oritsubushiroid");

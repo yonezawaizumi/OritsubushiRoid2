@@ -33,6 +33,8 @@ import com.wsf_lp.mapapp.data.OritsubushiNotificationIntent;
 import com.wsf_lp.mapapp.data.Station;
 import com.wsf_lp.android.CookieSyncManager;
 
+import cz.msebera.android.httpclient.Header;
+
 @SuppressWarnings("deprecation")
 public class SyncFragment extends DBAccessFragmentBase
 		implements View.OnClickListener, OnBackPressedListener,	OritsubushiBroadcastReceiver.SyncListener {
@@ -363,23 +365,30 @@ public class SyncFragment extends DBAccessFragmentBase
 			mClient = client;
 		}
 		@Override
-		public void onSuccess(String content) {
+		public void onSuccess(int i, Header[] headers, byte[] bytes) {
 			SyncFragment fragment = mFragment.get();
 			if(fragment == null) {
 				return;
 			} else if(mClient.getLogin()) {
+				String content;
+				try {
+					content = new String(bytes, "utf-8");
+				} catch (java.io.UnsupportedEncodingException e) {
+					content = new String(bytes);
+				}
 				fragment.onGotUserName(content);
 			} else {
 				fragment.onFailureUserName(false);
 			}
 		}
 		@Override
-		public void onFailure(Throwable e, String content) {
+		public void onFailure(int i, Header[] headers, byte[] bytes, Throwable throwable) {
 			SyncFragment fragment = mFragment.get();
 			if(fragment != null) {
 				fragment.onFailureUserName(true);
 			}
 		}
+
 	}
 
 	@Override

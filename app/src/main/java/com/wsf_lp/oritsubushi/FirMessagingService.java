@@ -28,7 +28,7 @@ public class FirMessagingService extends FirebaseMessagingService {
             return;
         }
 
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext());
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), "default");
         builder.setSmallIcon(R.drawable.notification);
         builder.setContentTitle(remoteMessage.getNotification().getTitle());
         builder.setContentText(remoteMessage.getNotification().getBody());

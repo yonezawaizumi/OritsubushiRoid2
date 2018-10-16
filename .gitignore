@@ -18,20 +18,5 @@ gradle/
 gradlew
 gradlew.bat
 
-.idea/*.xml
-.idea/libraries/
-!.idea/codeStyleSettings.xml
-!.idea/copyright/*.xml
-!.idea/fileColors.xml
-!.idea/encodings.xml
-!.idea/gradle.xml
-!.idea/runConfigurations/*.xml
-
-!.idea/inspectionProfiles/*.xml
-.idea/inspectionProfiles/profiles_settings.xml
-
-!.idea/scopes/*.xml
-.idea/scopes/scope_settings.xml
-
-!.idea/templateLanguages.xml
-!.idea/vcs.xml
+.idea/**/workspace.xml
+.idea/**/tasks.xml
