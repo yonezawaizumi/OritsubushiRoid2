@@ -1,13 +1,17 @@
 package com.wsf_lp.oritsubushi;
 
 import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Intent;
+import android.os.Build;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
+import com.wsf_lp.mapapp.data.DatabaseService;
 
 import java.util.Map;
 
@@ -16,6 +20,8 @@ import java.util.Map;
  */
 
 public class FirMessagingService extends FirebaseMessagingService {
+
+    final String CHANNEL_ID = "default";
 
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
@@ -28,7 +34,20 @@ public class FirMessagingService extends FirebaseMessagingService {
             return;
         }
 
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), "default");
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationManager nm = getSystemService(NotificationManager.class);
+            if (nm.getNotificationChannel(CHANNEL_ID) == null) {
+                String name = getString(R.string.notification_channel_default);
+                int importance = NotificationManager.IMPORTANCE_HIGH;
+                NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, importance);
+                channel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
+                channel.enableVibration(false);
+                channel.setShowBadge(false);
+                nm.createNotificationChannel(channel);
+            }
+        }
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), CHANNEL_ID);
         builder.setSmallIcon(R.drawable.notification);
         builder.setContentTitle(remoteMessage.getNotification().getTitle());
         builder.setContentText(remoteMessage.getNotification().getBody());

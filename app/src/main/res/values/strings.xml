@@ -102,4 +102,6 @@
     <string name="information_load_error">お知らせが読み込めませんでした</string>
     <string name="drawer_open_desc">メニューを開きます</string>
     <string name="drawer_close_desc">メニューを閉じます</string>
+    <string name="notification_channel_database">データベース更新</string>
+    <string name="notification_channel_default">お知らせ</string>
 </resources>

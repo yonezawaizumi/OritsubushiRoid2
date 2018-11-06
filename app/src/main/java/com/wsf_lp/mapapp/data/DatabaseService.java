@@ -23,6 +23,8 @@ import com.wsf_lp.oritsubushi.PreferenceKey;
 import com.wsf_lp.utils.MethodUtil;
 import com.wsf_lp.android.SavedLocale;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -32,6 +34,7 @@ import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.database.sqlite.SQLiteException;
 import android.os.Binder;
+import android.os.Build;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
@@ -257,6 +260,19 @@ public class DatabaseService extends Service
 		locale.compareAndSave(getResources().getConfiguration());
 		previousDatabaseInitializingPercentile = 0;
 		PreferenceManager.getDefaultSharedPreferences(this).registerOnSharedPreferenceChangeListener(this);
+
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+			NotificationManager nm = getSystemService(NotificationManager.class);
+			if (nm.getNotificationChannel(CHANNEL_ID) == null) {
+				String name = getString(R.string.notification_channel_database);
+				int importance = NotificationManager.IMPORTANCE_HIGH;
+				NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, importance);
+				channel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
+				channel.enableVibration(false);
+				channel.setShowBadge(false);
+				nm.createNotificationChannel(channel);
+			}
+		}
 		(new Worker(this)).start();
 	}
 
@@ -278,7 +294,12 @@ public class DatabaseService extends Service
 				.setContentIntent(initializingPendingIntent);
 			startForeground(NOTIFICATION_ID_INITIALIZE, builder.build());
 		} else if(percentile < 0) {
-			stopForeground(true);
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+				((NotificationManager)this.getSystemService(Service.NOTIFICATION_SERVICE)).cancel(NOTIFICATION_ID_INITIALIZE);
+				stopSelf();
+			} else {
+				stopForeground(true);
+			}
 			initializingPendingIntent = null;
 		} else if(percentile > previousDatabaseInitializingPercentile) {
 			previousDatabaseInitializingPercentile = percentile;
@@ -325,6 +346,9 @@ public class DatabaseService extends Service
 
 	@Override
 	public void onDestroy() {
+		//if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+		//	getSystemService(NotificationManager.class).deleteNotificationChannel(CHANNEL_ID);
+		//}
 		PreferenceManager.getDefaultSharedPreferences(this).unregisterOnSharedPreferenceChangeListener(this);
 		scheduler.shutdownNow();
 		requests.offer(Request.createTerminateRequest());

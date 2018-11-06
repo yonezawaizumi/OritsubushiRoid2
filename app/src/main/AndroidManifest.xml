@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
 	xmlns:tools="http://schemas.android.com/tools"
-	package="com.wsf_lp.oritsubushi" android:versionCode="62"
-	android:versionName="2.12.130">
+	package="com.wsf_lp.oritsubushi" android:versionCode="65"
+	android:versionName="2.12.132">
 	<uses-permission android:name="android.permission.INTERNET"/>
 	<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
 	<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
@@ -10,6 +10,7 @@
 	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 	<uses-permission android:name="com.google.android.providers.gsf.permission.READ_GSERVICES"/>
 	<uses-permission android:name="android.permission.WAKE_LOCK" />
+	<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 	<permission android:name="com.wsf_lp.oritsubushi.permission.MAPS_RECEIVE"
 		android:protectionLevel="signature" />
 	<uses-permission android:name="com.wsf_lp.oritsubushi.permission.MAPS_RECEIVE" />
