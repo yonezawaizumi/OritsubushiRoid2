@@ -27,7 +27,7 @@ public class EditMemoDialogFragment extends DialogFragment
 		bundle.putString(STATE_MEMO, station.getMemo());
 		bundle.putString(STATE_TITLE, station.getTitle());
 		fragment.setArguments(bundle);
-		fragment.setTargetFragment(stationFragment, 0);
+		//fragment.setTargetFragment(stationFragment, 0);
 		return fragment;
 	}
 
@@ -76,7 +76,7 @@ public class EditMemoDialogFragment extends DialogFragment
 	public void onClick(DialogInterface dialog, int which) {
 		switch(which) {
 		case DialogInterface.BUTTON_POSITIVE:
-			((StationFragment)getTargetFragment()).updateMemo(memo.getText().toString());
+			((StationFragment)getParentFragment()).updateMemo(memo.getText().toString());
 			dialog.cancel();
 			break;
 		case DialogInterface.BUTTON_NEGATIVE:
