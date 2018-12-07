@@ -270,6 +270,7 @@ public class DatabaseService extends Service
 				channel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
 				channel.enableVibration(false);
 				channel.setShowBadge(false);
+				channel.setSound(null, null);
 				nm.createNotificationChannel(channel);
 			}
 		}
@@ -296,10 +297,8 @@ public class DatabaseService extends Service
 		} else if(percentile < 0) {
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
 				((NotificationManager)this.getSystemService(Service.NOTIFICATION_SERVICE)).cancel(NOTIFICATION_ID_INITIALIZE);
-				stopSelf();
-			} else {
-				stopForeground(true);
 			}
+			stopForeground(true);
 			initializingPendingIntent = null;
 		} else if(percentile > previousDatabaseInitializingPercentile) {
 			previousDatabaseInitializingPercentile = percentile;

@@ -4,6 +4,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.os.Build;
 import android.os.IBinder;
 
 public class DatabaseServiceConnector implements ServiceConnection {
@@ -36,7 +37,11 @@ public class DatabaseServiceConnector implements ServiceConnection {
 
 	public void onServiceConnected(ComponentName className, IBinder service) {
 		databaseService = ((DatabaseService.DatabaseBinder)service).getService();
-		context.startService(intent);
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+			context.startForegroundService(intent);
+		} else {
+			context.startService(intent);
+		}
 		bound = true;
 		if(listener != null) {
 			listener.onDatabaseConnected(databaseService);
