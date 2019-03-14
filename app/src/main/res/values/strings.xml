@@ -29,6 +29,7 @@
     <string name="mapbutton_all">全駅</string>
     <string name="mapbutton_comp">済</string>
     <string name="mapbutton_incomp">未</string>
+    <string name="notification_database_service">駅データベースサービス起動中</string>
     <string name="notification_database_initializing">駅データベース初期化中(%d%%)</string>
     <string name="notification_database_initialized">駅データベースを初期化しました</string>
     <string name="map_wrapper_waiting">初期化中…</string>

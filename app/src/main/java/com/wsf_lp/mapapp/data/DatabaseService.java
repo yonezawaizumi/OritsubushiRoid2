@@ -52,6 +52,7 @@ public class DatabaseService extends Service
 	public static final int WAIT_END_SEC = 10;
 	private static final int NOTIFICATION_ID_INITIALIZE = 1;
 	private static final int NOTIFICATION_ID_SYNC = 2;
+	private static final int NOTIFICATION_ID_SERVICE = 3;
 
 	public static final String CHANNEL_ID = "database";
 
@@ -289,15 +290,14 @@ public class DatabaseService extends Service
 				.setContentTitle(getString(R.string.app_name))
 				.setContentText(statusText)
 				.setWhen(System.currentTimeMillis())
-				//.setDefaults(Notification.FLAG_NO_CLEAR)
+				//.setDefaults(Notification.FLAG_NO_CLE	AR)
 				.setAutoCancel(false)
 				.setOngoing(true)
 				.setContentIntent(initializingPendingIntent);
 			startForeground(NOTIFICATION_ID_INITIALIZE, builder.build());
 		} else if(percentile < 0) {
-			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-				((NotificationManager)this.getSystemService(Service.NOTIFICATION_SERVICE)).cancel(NOTIFICATION_ID_INITIALIZE);
-			}
+			NotificationManager manager = (NotificationManager)this.getSystemService(Service.NOTIFICATION_SERVICE);
+			manager.cancel(NOTIFICATION_ID_INITIALIZE);
 			stopForeground(true);
 			initializingPendingIntent = null;
 		} else if(percentile > previousDatabaseInitializingPercentile) {
@@ -320,7 +320,17 @@ public class DatabaseService extends Service
 
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
-		//ライフサイクルだけのためのダミー
+		String statusText = getString(R.string.notification_database_service);
+		NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), CHANNEL_ID)
+				.setSmallIcon(R.drawable.notification)
+				.setTicker(statusText)
+				.setContentTitle(getString(R.string.app_name))
+				.setContentText(statusText)
+				.setWhen(System.currentTimeMillis())
+				//.setDefaults(Notification.FLAG_NO_CLE	AR)
+				.setAutoCancel(true)
+				.setOngoing(false)
+		startForeground(NOTIFICATION_ID_SERVICE, builder.build());
 		return START_STICKY;
 	}
 
