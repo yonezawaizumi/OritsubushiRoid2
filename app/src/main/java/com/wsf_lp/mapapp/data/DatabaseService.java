@@ -329,7 +329,7 @@ public class DatabaseService extends Service
 				.setWhen(System.currentTimeMillis())
 				//.setDefaults(Notification.FLAG_NO_CLE	AR)
 				.setAutoCancel(true)
-				.setOngoing(false)
+				.setOngoing(false);
 		startForeground(NOTIFICATION_ID_SERVICE, builder.build());
 		return START_STICKY;
 	}
