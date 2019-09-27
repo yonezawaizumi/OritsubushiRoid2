@@ -6,6 +6,7 @@ import java.util.WeakHashMap;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.firebase.FirebaseApp;
+import com.google.firebase.FirebaseOptions;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.wsf_lp.android.PreferenceFragment.OnPreferenceAttachedListener;
 
@@ -19,18 +20,18 @@ import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.preference.PreferenceScreen;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.DialogFragment;
-import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v4.view.GravityCompat;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
+import androidx.fragment.app.DialogFragment;
+import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -80,6 +81,11 @@ public class MainActivity extends AppCompatActivity implements
 
 		//初期化値を先に設定しておかないとデータベース生成時の初期化が完全に行われない
         PreferenceManager.setDefaultValues(this, R.xml.preference, true);
+
+		FirebaseOptions.Builder builder = new FirebaseOptions.Builder()
+				.setApplicationId("1:414012607327:android:c5113d5cbf40abcb")
+				.setApiKey("AIzaSyAfRaTm0FrpsjrxUMJWd6QF2PlPIaCXtiY");
+		FirebaseApp.initializeApp(this, builder.build());
 
 		FirebaseMessaging.getInstance().subscribeToTopic("oritsubushiroid");
 		int fragmentId = onIntent(getIntent(	));

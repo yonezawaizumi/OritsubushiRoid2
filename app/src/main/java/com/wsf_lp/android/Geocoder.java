@@ -8,7 +8,6 @@ import com.google.android.gms.maps.model.LatLng;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
-import com.wsf_lp.oritsubushi.R;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -18,9 +17,9 @@ import android.content.DialogInterface.OnClickListener;
 import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.support.v4.app.DialogFragment;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
+import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
 
 import cz.msebera.android.httpclient.Header;
 

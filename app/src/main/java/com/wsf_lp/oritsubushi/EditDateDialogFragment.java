@@ -15,8 +15,8 @@ import android.content.DialogInterface;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.v4.app.DialogFragment;
-import android.support.v4.app.FragmentActivity;
+import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.FragmentActivity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.CheckBox;
@@ -118,9 +118,11 @@ public class EditDateDialogFragment extends DialogFragment
 		int value = Station.calcDay(date);
 		boolean disabled = value == Station.UNANBIGUOUS_DAY;
 		if(use11) {
+			dayPicker11.setRange(1, 31);
 			dayPicker11.setValue(disabled ? 1 : value);
 			dayPicker11.setEnabled(!disabled);
 		} else {
+			dayPicker.setRange(1, 31);
 			dayPicker.setValue(disabled ? 1 : value);
 			dayPicker.setEnabled(!disabled);
 		}
