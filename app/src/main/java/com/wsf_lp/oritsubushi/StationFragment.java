@@ -74,7 +74,7 @@ public class StationFragment extends DBAccessFragmentBase {
 		mEditDate.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				EditDateDialogFragment.newInstance(StationFragment.this).show(getFragmentManager(), EditDateDialogFragment.class.getCanonicalName());
+				EditDateDialogFragment.newInstance(StationFragment.this).show(getChildFragmentManager(), EditDateDialogFragment.class.getCanonicalName());
 			}
 		});
 		mCompletionOnToday.setOnClickListener(new OnClickListener() {

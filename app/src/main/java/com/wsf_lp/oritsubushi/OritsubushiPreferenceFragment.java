@@ -1,26 +1,30 @@
 package com.wsf_lp.oritsubushi;
 
 import android.content.SharedPreferences;
-import android.preference.ListPreference;
-import android.preference.PreferenceScreen;
+import android.os.Bundle;
 
-import com.wsf_lp.android.PreferenceFragment;
+import androidx.core.app.BundleCompat;
+import androidx.preference.ListPreference;
+import androidx.preference.PreferenceScreen;
+import androidx.preference.PreferenceFragmentCompat;
 
-public class OritsubushiPreferenceFragment extends PreferenceFragment implements SharedPreferences.OnSharedPreferenceChangeListener {
+public class OritsubushiPreferenceFragment extends PreferenceFragmentCompat implements SharedPreferences.OnSharedPreferenceChangeListener {
 
-	public OritsubushiPreferenceFragment() {
-	}
+	//@Override
+	//protected int getXmlId() {
+	//	return R.xml.preference;
+	//}
+
+	//@Override
+	//protected int getLayoutId() {
+	//	return R.layout.preference_list_content;
+	//}
 
 	@Override
-	protected int getXmlId() {
-		return R.xml.preference;
+	public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
+		setPreferencesFromResource(R.xml.preference, rootKey);
 	}
 
-	@Override
-	protected int getLayoutId() {
-		return R.layout.preference_list_content;
-	}
-	
 	@Override
 	public void onStart() {
 		super.onStart();

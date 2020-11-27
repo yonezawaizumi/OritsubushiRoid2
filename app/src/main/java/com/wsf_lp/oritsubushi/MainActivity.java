@@ -8,7 +8,6 @@ import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import com.google.firebase.messaging.FirebaseMessaging;
-import com.wsf_lp.android.PreferenceFragment.OnPreferenceAttachedListener;
 
 import android.annotation.TargetApi;
 import android.app.Dialog;
@@ -18,8 +17,8 @@ import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.os.Build;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
-import android.preference.PreferenceScreen;
+import androidx.preference.PreferenceManager;
+import androidx.preference.PreferenceScreen;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.DialogFragment;
 import androidx.appcompat.app.ActionBarDrawerToggle;
@@ -39,7 +38,7 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 
 public class MainActivity extends AppCompatActivity implements
-		OnPreferenceAttachedListener, AdapterView.OnItemClickListener {
+		/*OnPreferenceAttachedListener, */AdapterView.OnItemClickListener {
 	public static final int CONTENT_VIEW_ID = R.id.content_frame;
 
 	public static final String ARG_FRAGMENT = "fragment";
@@ -357,10 +356,8 @@ public class MainActivity extends AppCompatActivity implements
 		super.onBackPressed();
 	}
 
-	@Override
-	public void onPreferenceAttached(PreferenceScreen root, int xmlId) {
-		;
-	}
-
-
+	//@Override
+	//public void onPreferenceAttached(PreferenceScreen root, int xmlId) {
+	//	;
+	//}
 }

@@ -14,7 +14,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Build;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
+import androidx.preference.PreferenceManager;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.FragmentActivity;
 import android.view.LayoutInflater;
@@ -54,7 +54,7 @@ public class EditDateDialogFragment extends DialogFragment
 		Bundle bundle = new Bundle();
 		bundle.putParcelable(STATE_STATION, new Station(stationFragment.getStation()));
 		fragment.setArguments(bundle);
-		fragment.setTargetFragment(stationFragment, 0);
+		//fragment.setTargetFragment(stationFragment, 0);
 		return fragment;
 	}
 
@@ -169,7 +169,7 @@ public class EditDateDialogFragment extends DialogFragment
 		switch(which) {
 		case DialogInterface.BUTTON_POSITIVE:
 			station.setCompletionDate(completedCheck.isChecked() ? station.getCompletionDate() : Station.INCOMPLETE);
-			((StationFragment)getTargetFragment()).updateCompletionDate(station.getCompletionDate());
+			((StationFragment)getParentFragment()).updateCompletionDate(station.getCompletionDate());
 			dialog.cancel();
 			break;
 		case DialogInterface.BUTTON_NEGATIVE:

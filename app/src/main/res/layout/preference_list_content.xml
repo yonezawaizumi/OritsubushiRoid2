@@ -1,8 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ListView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@android:id/list"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:drawSelectorOnTop="false"
     android:scrollbarAlwaysDrawVerticalTrack="true" >
-</ListView>
+
+    <PreferenceCategory
+        android:title="@string/preference_title_map_settings">
+
+        <ListPreference
+            android:title="@string/preference_title_number_of_icons"
+            android:key="number_of_icons"
+            android:defaultValue="150"
+            android:entryValues="@array/preference_number_of_icons_values"
+            android:entries="@array/preference_number_of_icons"
+            android:dialogTitle="@string/preference_title_number_of_icons" />
+
+    </PreferenceCategory>
+
+</androidx.preference.PreferenceScreen>
